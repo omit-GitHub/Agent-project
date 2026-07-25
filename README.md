@@ -260,36 +260,119 @@ GUIAGENT_TRANSPORT=local python run-search.py 庆余年
 
 ---
 
-## 五、搜索片源示例
+## 五、功能脚本集
 
-[`run-search.py`](run-search.py) 驱动 whohuatv launcher（`com.wohuatv.launcher`）按指令序列搜片：
+所有 `run-*.py` 都 `from send import send`，**载体无关**——同一份脚本，PC 经 adb 隧道或设备本机直连都能跑，指令字节完全一致。两种载体的原理与搭建见 §三。
 
+### 5.1 脚本总览
+
+| 脚本 | 功能 | 关键参数 | 前置状态 |
+|---|---|---|---|
+| [`run-search.py`](run-search.py) | 搜片源（whohuatv launcher） | `<关键词>` | 在桌面/launcher |
+| [`run-play.py`](run-play.py) | 点开搜索结果第 X 个片源 | `<X>`（从 1 起） | 已在搜索结果页 |
+| [`run-toggle.py`](run-toggle.py) | 播放 / 暂停切换 | `[<res-id>]` | 已在播放器 |
+| [`run-episode.py`](run-episode.py) | 上一集 / 下一集 | `next\|prev [res-id]` | 已在播放器 |
+| [`run-speed.py`](run-speed.py) | 调播放倍速 | `<倍速> [res-id]` | 已在播放器 |
+| [`run-volume.py`](run-volume.py) | 右侧上下滑调音量 | `up\|down [次数]` | 已在播放器 |
+| [`run-brightness.py`](run-brightness.py) | 左侧上下滑调亮度 | `up\|down [次数]` | 已在播放器 |
+
+> `run-volume.py` / `run-brightness.py` 是**手势模拟**（垂直 `swipe`），依赖播放器实现了屏区分工手势（右=音量、左=亮度、中=进度），且**仅播放界面可用**。其余脚本走节点级 `click_node`/`set_text` + 坐标 `tap`。
+
+### 5.2 两种下发方式
+
+每个脚本都支持两种下发载体，**指令字节完全一致**，只换传输路径：
+
+**载体 A — PC 经 adb 隧道**（开发调试首选）：
+```bash
+# 1. 建隧道(设备重连/重启后重做)
+adb -s <serial> forward tcp:8321 localabstract:@guiagent
+# 2. 跑脚本(Windows 下中文加 PYTHONUTF8=1,避免关键词/输出乱码)
+PYTHONUTF8=1 python run-xxx.py <参数>
+```
+
+**载体 B — 设备本机 socket 直连**（无 PC、无 adb，任意本机进程）：
+```bash
+# 设备装好 python(Termux)后,用环境变量切到本机直连:
+GUIAGENT_TRANSPORT=local python run-xxx.py <参数>
+# 设备无 python 时,用 c-client 的 app_process / C 版(见 §三 载体 B),同连 @guiagent
+```
+
+> **本机 socket 方式不需要改 APP**。`CommandServer`（`onServiceConnected` 起 `LocalServerSocket("@guiagent")`）监听的是系统级 **AF_UNIX 抽象命名空间 socket**，**与本机进程是不是 APP 无关**——任何本机进程（Termux python / `app_process` / native daemon / 另一个 APP）用 `AF_UNIX` 连 `\0@guiagent` 即可。APP 侧已支持每连接独立线程 + 长连接连发（`CommandServer.handle` 的 `while` 循环），本机直连与 adb 隧道走同一份 `Protocol.handle`。`send.py` 已内置 `--local` / `GUIAGENT_TRANSPORT=local` 开关，所有 `run-*.py` 一行不改即可本机跑。
+
+### 5.3 各脚本步骤与调用
+
+#### run-search.py — 搜片源
+
+驱动 whohuatv launcher（`com.wohuatv.launcher`）按指令序列搜片，换 APP 替 res-id：
 ```
 1. start         pkg=com.wohuatv.launcher
-2. click_node    id=classsic_nav_search      # 点搜索入口
-3. set_text      id=mid_search_text_et text=庆余年   # 失败则 set_text_fallback
-4. click_node    id=mid_search_text          # 触发搜索
-5. find          id=pop_mid_content_item_tv limit=20 # 读片源结果列表
+2. click_node    id=classsic_nav_search       # 点搜索入口
+3. set_text      id=mid_search_text_et text=<关键词>   # 失败则 set_text_fallback
+4. click_node    id=mid_search_text            # 触发搜索
+5. find          id=pop_mid_content_item_tv limit=20    # 读片源结果列表
 ```
-
-PC 跑：`python run-search.py 庆余年`；本机跑：`GUIAGENT_TRANSPORT=local python run-search.py 庆余年`。
-
-换一个被搜 APP，只需替换序列里的 res-id（用 `dump` 查当前页面拿到）。GUIAgent 没有单独的 `search` 宏 op——搜索靠原子指令组合。
-
-[`run-play.py`](run-play.py) 在搜索结果页上点开第 X 个片源。它把多列网格按 **行优先（先从左到右、再从上到下）** 排序——主序是行（`cy` 从上到下），次序是列（`cx` 从左到右），同一行靠节点高度中位数一半作为 `cy` 容差（下限 20px）判定，网格行参差也能归对行。点击的目标是片源海报节点 `pop_mid_content_item_pic`（`clickable=true`），标题节点 `pop_mid_content_item_tv` 不可点击，只按 `cx` 配对用来显示片名。海报节点无 `nid` 可复用、且 `click_node` 的 `index` 是树前序非视觉序，故最终用 `tap` 坐标点中心最稳。
-
 ```bash
-# 前置: 已跑 run-search.py <关键词> 进入搜索结果页,
-#      且已 adb forward tcp:8321 localabstract:@guiagent
+PYTHONUTF8=1 python run-search.py 庆余年                # PC(adb 隧道)
+GUIAGENT_TRANSPORT=local python run-search.py 庆余年      # 本机(socket 直连)
+```
+GUIAgent 没有单独的 `search` 宏 op——搜索靠原子指令组合。换 APP 只需替换序列里的 res-id（用 `dump` 查当前页面拿到）。
 
-# 点第 X 个片源(X 从 1 开始)
-python run-play.py 2
+#### run-play.py — 点开第 X 个片源
 
-# 设备本机直连
-GUIAGENT_TRANSPORT=local python run-play.py 2
+在搜索结果页点开第 X 个片源。多列网格按 **行优先（先从左到右、再从上到下）** 排序——主序行（`cy`），次序列（`cx`），同一行靠节点高度中位数一半作 `cy` 容差（下限 20px）。点击目标是片源海报 `pop_mid_content_item_pic`（`clickable=true`），标题 `pop_mid_content_item_tv` 不可点击只用于显示片名。海报节点无 `nid` 可复用、`click_node` 的 `index` 是树前序非视觉序，故用 `tap` 坐标点中心最稳。
+```bash
+# 前置: 已跑 run-search.py <关键词> 进入搜索结果页
+PYTHONUTF8=1 python run-play.py 2                       # PC,点第 2 个
+GUIAGENT_TRANSPORT=local python run-play.py 2           # 本机
+```
+跑完先打印行优先排序后的片源清单（标 `<=` 的即即将点击的第 X 个），再 `tap` 其海报中心。`find` 不到海报节点提示先跑搜索或结果未加载完；返回条数少于 X 提示 RecyclerView 只渲染了可见项、需上滑加载更多。
+
+#### run-toggle.py — 播放 / 暂停
+
+**解耦策略**（避免控制条消失时二次 tap 抵消）：先 `find` 按钮（`find text=""/desc=""` 拉回 + 本地子串匹配 `播放/暂停/play/pause/继续/resume`）→ 命中 `tap` bounds 中心 → 结束；找不到才 `tap` 中心一次（唤控制条或直接切换）→ 再 `find` → 命中 `tap` / 再找不到**停手**（避免二次 tap 抵消）。
+```bash
+PYTHONUTF8=1 python run-toggle.py                       # PC,通用 desc 匹配
+PYTHONUTF8=1 python run-toggle.py <res-id>              # PC,指定按钮 res-id 最稳
+GUIAGENT_TRANSPORT=local python run-toggle.py           # 本机
 ```
 
-跑完会先打印行优先排序后的片源清单（标 `<=` 的即即将点击的第 X 个），再发 `tap` 点击其海报中心点。若 `find` 不到海报节点提示先跑搜索或结果未加载完；若返回条数少于 X 提示 RecyclerView 只渲染了可见项、需上滑加载更多。
+#### run-episode.py — 上一集 / 下一集
+
+`tap` 中心唤控制条 → `find` 按钮（desc/text 子串 `下一集/下一部/next` 或 `上一集/上一部/prev`）→ 命中 `tap` bounds 中心。**切集不可逆，找不到不乱点**，提示 `dump` 抓 res-id。
+```bash
+PYTHONUTF8=1 python run-episode.py next                # PC,下一集
+PYTHONUTF8=1 python run-episode.py prev                # PC,上一集
+PYTHONUTF8=1 python run-episode.py next <res-id>       # PC,指定按钮
+GUIAGENT_TRANSPORT=local python run-episode.py next     # 本机
+```
+
+#### run-speed.py — 调倍速
+
+两步：点倍速按钮（`find` `倍速/倍数/速率/speed` 或传 res-id）唤面板 → `find text=""` 拉档位节点，本地**去后缀 + 数值比较**精确匹配（覆盖 `1x/1.0x/1.5×/1.5倍速/裸 1.5`），`rate=1` 额外接受别名 `正常/标准/原速/normal`（如芒果 TV 的 1x 档位即"正常"）。
+```bash
+PYTHONUTF8=1 python run-speed.py 1.5                    # PC,切 1.5x
+PYTHONUTF8=1 python run-speed.py 1                      # PC,切 1x(匹配"正常"/"1x"等)
+PYTHONUTF8=1 python run-speed.py 1.5 <speed-btn-id>     # PC,指定倍速按钮
+GUIAGENT_TRANSPORT=local python run-speed.py 1.5        # 本机
+```
+
+#### run-volume.py — 调音量（右侧慢滑）
+
+屏幕**右侧**垂直慢滑（`swipe`，x=`w*0.75`，duration 700ms）模拟播放器手势：上滑调高、下滑调低。一次手势一格音量。
+```bash
+PYTHONUTF8=1 python run-volume.py up                    # PC,调高一格
+PYTHONUTF8=1 python run-volume.py down 3                # PC,调低三格
+GUIAGENT_TRANSPORT=local python run-volume.py up        # 本机
+```
+
+#### run-brightness.py — 调亮度（左侧慢滑）
+
+与 `run-volume.py` 对称：屏幕**左侧**垂直慢滑（x=`w*0.25`）：上滑调亮、下滑调暗。
+```bash
+PYTHONUTF8=1 python run-brightness.py up                # PC,调亮一格
+PYTHONUTF8=1 python run-brightness.py down 2            # PC,调暗两格
+GUIAGENT_TRANSPORT=local python run-brightness.py up    # 本机
+```
 
 ---
 
@@ -325,8 +408,14 @@ GUIAgent/
 │           └── Err.java                     #   错误码
 ├── instruction-protocol.md                 # 指令格式规约 v1.2(语义权威)
 ├── send.py                                 # 两用单指令收发(TCP/本机直连)
-├── run-search.py                           # whohuatv 搜片序列(载体无关)
+├── run-search.py                           # 搜片源(whohuatv launcher,载体无关)
 ├── run-play.py                             # 在搜索结果页点开第 X 个片源(行优先排序)
+├── run-toggle.py                           # 播放/暂停(解耦,避免控制条消失时二次 tap 抵消)
+├── run-episode.py                          # 上/下一集(desc 匹配,切集不可逆不乱点)
+├── run-speed.py                            # 调倍速(去后缀+数值比较+别名,芒果 TV"正常"=1x)
+├── run-volume.py                           # 右侧上下滑调音量(垂直 swipe 手势模拟)
+├── run-brightness.py                       # 左侧上下滑调亮度(垂直 swipe 手势模拟)
+├── video-player-ops.md                     # 视频播放器原子操作清单(语义,非脚本)
 ├── c-client/                               # 设备本机进程直连客户端(已验证)
 │   ├── G.java                              #   app_process 方案: javac+d8+app_process
 │   └── guiagent-search.c                   #   C 方案: 待 NDK/zig 交叉编译
