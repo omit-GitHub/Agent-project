@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">GUIAgent</string>
+    <string name="accessibility_description">GUIAgent 指令执行器：通过本地 socket 接收确定性指令操控 APP，不依赖 root/adb。</string>
+</resources>

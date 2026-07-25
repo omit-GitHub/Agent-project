@@ -1,0 +1,31 @@
+# Gradle / Android 构建产物
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# 本地配置（含 SDK 路径，不可提交）
+local.properties
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+captures/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Claude 本地设置
+.claude/settings.local.json
+
+# 系统/日志
+.DS_Store
+Thumbs.db
+*.log
