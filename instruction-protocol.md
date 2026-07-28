@@ -6,9 +6,10 @@
 ## 1. 传输载体(仅示例,不影响格式)
 
 - 宿主进程在设备内监听一个 **Unix 抽象命名空间 socket**:`@guiagent`。
-- 现阶段(PC+adb 过渡):`adb forward tcp:8321 localabstract:guiagent`,PC 往 `127.0.0.1:8321` 发字节。
-- 将来(中屏内另一 APP 进程):直连 `localabstract:guiagent`。
-- 两种载体的指令字节完全一致;adb 仅作网络隧道,不参与语义。
+- 载体 A(PC+adb 过渡):`adb forward tcp:8321 localabstract:guiagent`,PC 往 `127.0.0.1:8321` 发字节。
+- 载体 B(中屏内另一 APP 进程):直连 `localabstract:guiagent`(AF_UNIX `\0@guiagent`)。
+- 载体 C(WebSocket 网络入口):APP 内建 ws 服务端监听 `0.0.0.0:8322`,路径 `/guiagent`;内网任意可信机器经 `ws://<设备IP>:8322/guiagent` 连接,无需 adb forward。请求=一个 ws 文本帧(一行 NDJSON),响应=一个文本帧,经 `LineHandler` 转 `Protocol.handle`。
+- 三种载体的指令字节完全一致;adb 与 ws 仅作网络隧道,不参与语义。
 
 ## 2. 帧格式
 

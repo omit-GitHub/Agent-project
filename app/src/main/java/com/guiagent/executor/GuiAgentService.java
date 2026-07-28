@@ -27,6 +27,7 @@ public class GuiAgentService extends AccessibilityService {
     private static volatile GuiAgentService instance;
 
     private CommandServer server;
+    private WsCommandServer wsServer;
 
     public static GuiAgentService get() {
         return instance;
@@ -54,6 +55,12 @@ public class GuiAgentService extends AccessibilityService {
         } catch (Exception e) {
             Log.e(TAG, "command server start failed", e);
         }
+        if (wsServer != null) {
+            wsServer.stop();
+            wsServer = null;
+        }
+        wsServer = new WsCommandServer(this);
+        wsServer.start();
     }
 
     @Override
@@ -70,6 +77,10 @@ public class GuiAgentService extends AccessibilityService {
         if (server != null) {
             server.stop();
             server = null;
+        }
+        if (wsServer != null) {
+            wsServer.stop();
+            wsServer = null;
         }
         if (instance == this) instance = null;
         return super.onUnbind(intent);

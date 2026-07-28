@@ -35,9 +35,10 @@ flowchart LR
 纯文本流向（不渲染 Mermaid 时看这里）：
 
 ```
-调用方 ──NDJSON──▶ CommandServer(@guiagent) ──▶ Protocol.dispatch(op) ──▶ GuiAgentService
-  PC     : adb forward tcp:8321 ⇄ localabstract:@guiagent  (TCP 隧道)
-  本机   : AF_UNIX  "\0@guiagent"                          (抽象 socket 直连)
+调用方 ──NDJSON──▶ CommandServer(@guiagent) / WsCommandServer(:8322) ──▶ Protocol.dispatch(op) ──▶ GuiAgentService
+  PC     : adb forward tcp:8321 ⇄ localabstract:@guiagent  (TCP 隧道,载体 A)
+  本机   : AF_UNIX  "\0@guiagent"                           (抽象 socket 直连,载体 B)
+  内网   : ws://<设备IP>:8322/guiagent                       (WebSocket 文本帧,载体 C)
                                                   └─▶ AccessibilityNodeInfo / dispatchGesture / performGlobalAction
 ```
 
@@ -79,6 +80,20 @@ adb shell settings put secure accessibility_enabled 1
 ```
 
 开启后 `CommandServer` 随服务常驻，抽象 socket `@guiagent` 即开始接客。可用 `ping` 验证（见下）。
+
+### 关键点：无障碍服务的启动机制与持久性
+
+- **不能由 APP 自启动拉起**：`GuiAgentService` 是 `AccessibilityService`，生命周期由系统 `AccessibilityManager` 管理——仅当 `settings.secure.enabled_accessibility_services` 含本服务时由系统自动绑定，APP 自身无法 `startService`/`bindService` 拉起，也无权把自己写进该 setting（需 `WRITE_SECURE_SETTINGS`）。故"把 APP 做成开机自启"替代不了"开无障碍"这一步。
+- **开关持久、重启不丢**：`enabled_accessibility_services` 存于 `settings.secure`，写入即持久，重启后仍生效（adb 写入与手动开启同等持久）。验证：
+  ```bash
+  adb -s <serial> reboot
+  # 重启后查 8322(0x2082) 是否仍 LISTEN（状态 0A）
+  adb -s <serial> shell "cat /proc/net/tcp /proc/net/tcp6" | grep -i 2082
+  ```
+- **服务一旦 enabled，由系统常驻绑定**：`AccessibilityService` 优先级高于普通前台服务，进程被杀系统会自动重启它，**无需自写保活逻辑**。`onServiceConnected` 里起的 `CommandServer`/`WsCommandServer` 随之恢复。
+- **真正会失效的场景**：① 用户手动关；② 部分 ROM 省电/清理策略强制禁用；③ 覆盖安装后某些 ROM 要求重新确认。这些 APP 层无法阻止，只能 adb 重新 `settings put` 恢复或引导用户重开。
+- **想做"自启动"的正解**：注册 `BOOT_COMPLETED`（加 `RECEIVE_BOOT_COMPLETED` 权限 + receiver），开机后起一个引导 Activity/通知，检测服务未启用即跳转无障碍设置页让用户一键开启——**引导授权，而非拉起服务**。
+- **想完全免授权**：需 Shizuku（免 root，shell 权限静默 `settings put` 或用 `UiAutomator` 替代无障碍）或 root，但前者要重写执行层（`dispatchGesture` → `input`/`UiAutomator`），工作量与收益需权衡。
 
 ---
 
@@ -189,6 +204,29 @@ adb shell "CLASSPATH=/data/local/tmp/g.dex app_process / G 庆余年"
 - **git bash + adb**：命令行里 `/data/...` 与 `app_process /` 的 `/` 会被 MSYS 转成 `C:/Program Files/Git/...`，须 `MSYS_NO_PATHCONV=1` 禁用。
 
 > 设备本机无 python 时，除 `app_process` 外，[`c-client/guiagent-search.c`](c-client/guiagent-search.c) 是等价的 C 版本，用 NDK（`armv7a-linux-androideabi28-clang`）或 zig（`-target arm-linux-musleabi -static`）交叉编译静态二进制后 push 到 `/data/local/tmp/` 跑即可。
+
+### 载体 C — WebSocket(网络入口,内网直连)
+
+适用:内网中任意可信机器(无需 adb forward、无需是设备本机进程)经 ws 直连 APP。APP 在 `onServiceConnected` 起 `WsCommandServer` 监听 `0.0.0.0:8322`,路径 `/guiagent`;请求=一个 ws 文本帧(一行 NDJSON),响应=一个文本帧,字节与载体 A/B 完全一致。ws 服务端为手写 RFC 6455(纯 Java,保 universal APK 无依赖)。
+
+```bash
+# 1. 设备已开无障碍服务(ws 服务随服务常驻,无需 adb forward)
+# 2. PC 上 ws 直连设备(Windows 下中文加 PYTHONUTF8=1)
+set PYTHONUTF8=1
+set GUIAGENT_TRANSPORT=ws
+set GUIAGENT_WS_HOST=192.168.1.10     # 设备内网 IP
+python send.py "{\"id\":\"1\",\"op\":\"ping\",\"args\":{}}"
+# 或 CLI 开关(走默认 host 127.0.0.1,需先 adb forward tcp:8322 tcp:8322):
+adb forward tcp:8322 tcp:8322
+python send.py --ws '{"id":"1","op":"ping","args":{}}'
+```
+
+`run-*.py` 一行不改,设环境变量即经 ws 跑:
+```bash
+GUIAGENT_TRANSPORT=ws GUIAGENT_WS_HOST=192.168.1.10 python run-toggle.py
+```
+
+> 载体 C 不改协议层:`WsCommandServer` 收到的 NDJSON 经 `LineHandler`(`line -> Protocol.handle(svc, line)`)转 `Protocol.handle`,与 `@guiagent` 同一函数。安全见 §七——ws 监听 `0.0.0.0` = 同局域网任意设备可连、无鉴权,与 `@guiagent` 同取向但暴露面更大。
 
 ### 两种载体共用同一份客户端
 
@@ -389,6 +427,8 @@ GUIAGENT_TRANSPORT=local python run-brightness.py up    # 本机
 
 抽象 socket **无文件系统权限保护**，同设备任意进程都能连 `@guiagent` 发指令（能读屏、能点击、能填字）。v1.2 未做鉴权。若设备上存在不可信进程，需在协议层自行加固（如 `args` 携带共享 secret 校验，或服务端校验对端 uid 白名单）。
 
+**WebSocket 载体 C 暴露面更大**：ws 监听 `0.0.0.0:8322`，**同局域网任意设备**都能连（不限本机进程），v1.x 同样无鉴权。仅适用于可信内网；若内网存在不可信设备，需自行加 token 校验，或退回 `adb forward` 限定本机。ws 为明文（非 wss），内网可信前提下可接受；跨网/不可信环境须加 TLS 与鉴权。
+
 ---
 
 ## 八、目录结构
@@ -403,11 +443,15 @@ GUIAgent/
 │       └── java/com/guiagent/executor/
 │           ├── GuiAgentService.java        #   AccessibilityService 实现
 │           ├── CommandServer.java          #   抽象 socket 服务 @guiagent
+│           ├── WsCommandServer.java       #   WebSocket 服务 :8322(载体 C)
+│           ├── LineHandler.java           #   ws 转发函数接口(解耦 Protocol)
+│           ├── WsHandshake.java           #   RFC 6455 握手(纯逻辑,可单测)
+│           ├── WsFrame.java               #   RFC 6455 帧编解码(纯逻辑,可单测)
 │           ├── Protocol.java                #   NDJSON 指令分发
 │           ├── Match.java / Nodes.java      #   节点匹配 / 树序列化
 │           └── Err.java                     #   错误码
 ├── instruction-protocol.md                 # 指令格式规约 v1.2(语义权威)
-├── send.py                                 # 两用单指令收发(TCP/本机直连)
+├── send.py                                 # 单指令收发,三载体(TCP/本机直连/WebSocket)
 ├── run-search.py                           # 搜片源(whohuatv launcher,载体无关)
 ├── run-play.py                             # 在搜索结果页点开第 X 个片源(行优先排序)
 ├── run-toggle.py                           # 播放/暂停(解耦,避免控制条消失时二次 tap 抵消)

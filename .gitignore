@@ -29,3 +29,5 @@ venv/
 .DS_Store
 Thumbs.db
 *.log
+/.claude/
+/.changes/
