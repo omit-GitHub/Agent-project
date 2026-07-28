@@ -5,10 +5,9 @@
 用法:
   python run-play.py X            # X 从 1 开始
   python run-play.py 2
-  GUIAGENT_TRANSPORT=local python run-play.py 2   # 设备本机直连
 
 前置: 当前已在搜索结果页(先跑 `python run-search.py <关键词>`)。
-      设备已开 GUIAgent 无障碍服务,且 `adb forward tcp:8321 localabstract:@guiagent`。
+      设备已开 GUIAgent 无障碍服务(ws 随无障碍常驻;PC 直连设备填 GUIAGENT_WS_HOST=<设备IP> 或先 adb forward tcp:8322 tcp:8322)。
 
 点击目标: 每个片源 item 的可点击节点是海报 `pop_mid_content_item_pic`
 (clickable=true);标题 `pop_mid_content_item_tv` 不可点击,只用来显示片名。

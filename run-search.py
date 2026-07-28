@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """搜索片源:whohuatv launcher,经 instruction-protocol 指令序列驱动。
 用法: python run-search.py [关键词]   (默认 "")
-前置: 设备已开 GUIAgent 无障碍服务,且 `adb forward tcp:8321 localabstract:guiagent`。"""
+前置: 设备已开 GUIAgent 无障碍服务(ws 随无障碍常驻;PC 直连设备填 GUIAGENT_WS_HOST=<设备IP> 或先 adb forward tcp:8322 tcp:8322)。"""
 import json, sys, time
 from send import send
 

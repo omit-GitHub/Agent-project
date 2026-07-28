@@ -15,10 +15,9 @@
   python run-volume.py down          # 调低一格
   python run-volume.py up 3          # 调高三格
   python run-volume.py down 2        # 调低两格
-  GUIAGENT_TRANSPORT=local python run-volume.py up   # 设备本机直连
 
 前置: 已在播放器界面(先跑 run-search.py + run-play.py 进入某片源)。
-      设备已开 GUIAgent 无障碍服务,且 `adb forward tcp:8321 localabstract:@guiagent`。
+      设备已开 GUIAgent 无障碍服务(ws 随无障碍常驻;PC 直连设备填 GUIAGENT_WS_HOST=<设备IP> 或先 adb forward tcp:8322 tcp:8322)。
 
 若该播放器不支持上下滑调音量(手势被别的功能占用或无此功能),此脚本无效——
 那是播放器行为差异,非 GUIAgent 能力问题。回退方案是协议新增 `volume` op 走
@@ -52,7 +51,7 @@ def main():
     # 1. ping 拿屏幕尺寸
     r1 = op(1, "ping")
     if not r1.get("ok"):
-        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
+        sys.exit("ping 失败——确认无障碍服务已开且 ws 可达(设 GUIAGENT_WS_HOST=<设备IP> 或 adb forward tcp:8322 tcp:8322)")
     screen = r1["data"].get("screen", {})
     w, h = screen.get("w", 1280), screen.get("h", 800)
 

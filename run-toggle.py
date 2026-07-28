@@ -20,10 +20,9 @@
 用法:
   python run-toggle.py                 # 通用模式:desc 匹配(解耦,不二次 tap)
   python run-toggle.py <res-id>        # 指定播放/暂停按钮 res-id,直接 click_node
-  GUIAGENT_TRANSPORT=local python run-toggle.py    # 设备本机直连
 
 前置: 已在播放器界面(先跑 run-search.py + run-play.py 进入某片源)。
-      设备已开 GUIAgent 无障碍服务,且 `adb forward tcp:8321 localabstract:@guiagent`。
+      设备已开 GUIAgent 无障碍服务(ws 随无障碍常驻;PC 直连设备填 GUIAGENT_WS_HOST=<设备IP> 或先 adb forward tcp:8322 tcp:8322)。
 """
 import json, sys, time
 from send import send
@@ -75,7 +74,7 @@ def main():
     # 1. ping 拿屏幕尺寸
     r1 = op(1, "ping")
     if not r1.get("ok"):
-        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
+        sys.exit("ping 失败——确认无障碍服务已开且 ws 可达(设 GUIAGENT_WS_HOST=<设备IP> 或 adb forward tcp:8322 tcp:8322)")
     screen = r1["data"].get("screen", {})
     w, h = screen.get("w", 1080), screen.get("h", 1920)
     cx, cy = w // 2, h // 2

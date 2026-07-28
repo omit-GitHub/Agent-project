@@ -5,11 +5,9 @@
 
 ## 1. 传输载体(仅示例,不影响格式)
 
-- 宿主进程在设备内监听一个 **Unix 抽象命名空间 socket**:`@guiagent`。
-- 载体 A(PC+adb 过渡):`adb forward tcp:8321 localabstract:guiagent`,PC 往 `127.0.0.1:8321` 发字节。
-- 载体 B(中屏内另一 APP 进程):直连 `localabstract:guiagent`(AF_UNIX `\0@guiagent`)。
-- 载体 C(WebSocket 网络入口):APP 内建 ws 服务端监听 `0.0.0.0:8322`,路径 `/guiagent`;内网任意可信机器经 `ws://<设备IP>:8322/guiagent` 连接,无需 adb forward。请求=一个 ws 文本帧(一行 NDJSON),响应=一个文本帧,经 `LineHandler` 转 `Protocol.handle`。
-- 三种载体的指令字节完全一致;adb 与 ws 仅作网络隧道,不参与语义。
+- 宿主 APP 在设备内监听一个 **WebSocket 服务**:`0.0.0.0:8322`,路径 `/guiagent`。
+- 内网任意可信机器经 `ws://<设备IP>:8322/guiagent` 连接,无需 adb forward、无需是设备本机进程。请求=一个 ws 文本帧(一行 NDJSON),响应=一个文本帧,经 `LineHandler` 转 `Protocol.handle`。
+- ws 仅作网络隧道,不参与语义;换传输层只换隧道,指令字节不变。
 
 ## 2. 帧格式
 
@@ -91,7 +89,7 @@
 - **`set_text` 失败 → 降级**:`ACTION_SET_TEXT` 返回 false 时返回 `err.code=SET_TEXT_FAILED`,调用方据此改发 `set_text_fallback`(聚焦→剪贴板→ACTION_PASTE)。错误码枚举新增 `SET_TEXT_FAILED`。
 - **`wait(event)`**:v1.2 仅占位,未实现;设备侧宿主接入事件流后再补,现只支持 `{ms}` 睡眠。
 - **`set_text` 的 `text` 是值不是匹配条件**:`set_text`/`set_text_fallback` 的 `args.text` 为"要填入的文本",**不**作为 find 条件;匹配仅靠 `id`/`desc`/`cls`。宿主实现 parseMatch 时须特判(否则会去找"文本含关键词"的 EditText 而失败)。
-- **载体(已落地)**:设备侧宿主 APP(`com.guiagent.executor`)在 `onServiceConnected` 起 `LocalServerSocket("@guiagent")`(抽象命名空间)。**注意真实抽象名为 `@guiagent`**(`/proc/net/unix` 显示 `@@guiagent`),故 adb 桥接须用 `adb forward tcp:8321 localabstract:@guiagent`(带 @)。将来中屏内另一 APP 进程直连抽象 socket `@guiagent`,字节不变。规约前文的 `@guiagent` 现为实际名字,非记法。
+- **载体(已落地)**:设备侧宿主 APP(`com.guiagent.executor`)在 `onServiceConnected` 起 `WsCommandServer` 监听 `0.0.0.0:8322`,路径 `/guiagent`(手写 RFC 6455,纯 Java)。内网机器经 `ws://<设备IP>:8322/guiagent` 连接,文本帧载荷即一行 NDJSON。握手 `WsHandshake`、帧编解码 `WsFrame` 为无 Android 依赖的纯逻辑,可 JVM 单测。
 
 ## 5. 确定性原则(强制)
 
@@ -105,19 +103,19 @@
 
 ## 6. 载体无关性示例
 
+指令字节与传输层无关。下面用 `send.py` 经 ws 发(设 `GUIAGENT_WS_HOST` 为设备 IP;Windows 加 `PYTHONUTF8=1`):
+
 ```bash
-# 现阶段(adb 隧道)
-adb forward tcp:8321 localabstract:guiagent
-echo '{"id":"1","op":"ping","args":{}}'                                       | nc 127.0.0.1 8321
-echo '{"id":"2","op":"tap","args":{"x":540,"y":1200}}'                        | nc 127.0.0.1 8321
-echo '{"id":"3","op":"set_text","args":{"id":"search_box","text":"庆余年"}}' | nc 127.0.0.1 8321
-echo '{"id":"4","op":"dump","args":{"depth":3}}'                              | nc 127.0.0.1 8321
+PYTHONUTF8=1 GUIAGENT_WS_HOST=192.168.1.10 python send.py '{"id":"1","op":"ping","args":{}}'
+PYTHONUTF8=1 GUIAGENT_WS_HOST=192.168.1.10 python send.py '{"id":"2","op":"tap","args":{"x":540,"y":1200}}'
+PYTHONUTF8=1 GUIAGENT_WS_HOST=192.168.1.10 python send.py '{"id":"3","op":"set_text","args":{"id":"search_box","text":"庆余年"}}'
+PYTHONUTF8=1 GUIAGENT_WS_HOST=192.168.1.10 python send.py '{"id":"4","op":"dump","args":{"depth":3}}'
 ```
-将来设备内 APP 把 `nc 127.0.0.1 8321` 换成"连 `@guiagent`",其余一字不改。
+无 adb 隧道时,经 `adb forward tcp:8322 tcp:8322` 后用默认 host `127.0.0.1` 即可,指令一字不改。
 
 ## 7. 选定默认值(本版采用)
 
 - op 命名:`snake_case`。
 - 多匹配默认:取第一个(可被 `index` 覆盖)。
 - 节点句柄 `nid`:保留。
-- 传输载体:abstract socket `@guiagent`。
+- 传输载体:WebSocket `0.0.0.0:8322 /guiagent`。
