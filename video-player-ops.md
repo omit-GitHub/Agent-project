@@ -6,7 +6,7 @@
 
 ## 0. 前置
 
-- 设备已开 GUIAgent 无障碍服务，且 `adb forward tcp:8321 localabstract:@guiagent`（载体 A）或设备本机直连（载体 B）。
+- 设备已开 GUIAgent 无障碍服务（ws 服务随 `onServiceConnected` 常驻，监听 `0.0.0.0:8322`），PC 直连设备填 `GUIAGENT_WS_HOST=<设备IP>`，或经 `adb forward tcp:8322 tcp:8322` 用默认 host。
 - 已通过 `run-search.py` + `run-play.py` 进入某片源播放器。
 - 下文 `<find>` 表示 `find` 的子集条件 `{text?,id?,desc?,cls?,nid?}`；`<id>` 表示该 APP 里某按钮的 resource-id，需用 `dump` 实测获取。
 
