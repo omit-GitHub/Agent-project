@@ -18,15 +18,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 无障碍服务:系统在「设置→无障碍」开启后常驻;onServiceConnected 起本地 socket 服务,
- * 接收 instruction-protocol 指令并翻译为无障碍动作。不依赖 root/adb。
+ * 无障碍服务:系统在「设置→无障碍」开启后常驻;onServiceConnected 起 WebSocket
+ * 服务(:8322),接收 instruction-protocol 指令并翻译为无障碍动作。不依赖 root/adb。
  */
 public class GuiAgentService extends AccessibilityService {
 
     private static final String TAG = "guiagent";
     private static volatile GuiAgentService instance;
 
-    private CommandServer server;
+    private WsCommandServer server;
 
     public static GuiAgentService get() {
         return instance;
@@ -47,13 +47,9 @@ public class GuiAgentService extends AccessibilityService {
             server.stop();
             server = null;
         }
-        try {
-            server = new CommandServer(this);
-            server.start();
-            Log.i(TAG, "service connected, command server up");
-        } catch (Exception e) {
-            Log.e(TAG, "command server start failed", e);
-        }
+        server = new WsCommandServer(this);
+        server.start();
+        Log.i(TAG, "service connected, ws server up");
     }
 
     @Override

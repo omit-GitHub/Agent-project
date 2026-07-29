@@ -1,0 +1,796 @@
+{
+  "id": "3",
+  "ok": true,
+  "data": {
+    "pkg": "com.guiagent.executor",
+    "window": {
+      "bounds": {
+        "l": 0,
+        "t": 0,
+        "r": 1280,
+        "b": 800
+      },
+      "text": "",
+      "id": "",
+      "cls": "android.widget.FrameLayout",
+      "desc": "",
+      "clickable": false,
+      "children": [
+        {
+          "bounds": {
+            "l": 0,
+            "t": 0,
+            "r": 1280,
+            "b": 800
+          },
+          "text": "",
+          "id": "com.wohuatv.launcher:id/main_root_view",
+          "cls": "android.support.v4.widget.DrawerLayout",
+          "desc": "",
+          "clickable": false,
+          "children": [
+            {
+              "bounds": {
+                "l": 0,
+                "t": 0,
+                "r": 1280,
+                "b": 800
+              },
+              "text": "",
+              "id": "com.wohuatv.launcher:id/contentFrame",
+              "cls": "android.widget.FrameLayout",
+              "desc": "",
+              "clickable": false,
+              "children": [
+                {
+                  "bounds": {
+                    "l": 0,
+                    "t": 0,
+                    "r": 1280,
+                    "b": 800
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/bg_switcher",
+                  "cls": "android.widget.ImageSwitcher",
+                  "desc": "",
+                  "clickable": false,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 0,
+                    "t": 0,
+                    "r": 1280,
+                    "b": 80
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/blank_view",
+                  "cls": "android.widget.TextView",
+                  "desc": "",
+                  "clickable": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 662,
+                    "t": 30,
+                    "r": 831,
+                    "b": 70
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/classsic_nav_search",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "",
+                  "clickable": true,
+                  "children": [
+                    {
+                      "bounds": {
+                        "l": 681,
+                        "t": 30,
+                        "r": 791,
+                        "b": 70
+                      },
+                      "text": "千香",
+                      "id": "com.wohuatv.launcher:id/top_nav_hot_search",
+                      "cls": "android.widget.TextView",
+                      "desc": "",
+                      "clickable": false,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "bounds": {
+                    "l": 837,
+                    "t": 34,
+                    "r": 890,
+                    "b": 66
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/classsic_nav_person",
+                  "cls": "android.widget.ImageView",
+                  "desc": "",
+                  "clickable": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 896,
+                    "t": 34,
+                    "r": 949,
+                    "b": 66
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/classsic_nav_net",
+                  "cls": "android.widget.ImageView",
+                  "desc": "",
+                  "clickable": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 955,
+                    "t": 34,
+                    "r": 1008,
+                    "b": 66
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/cloud_single_top_message",
+                  "cls": "android.widget.ImageView",
+                  "desc": "",
+                  "clickable": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1014,
+                    "t": 34,
+                    "r": 1067,
+                    "b": 66
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/classsic_nav_set",
+                  "cls": "android.widget.ImageView",
+                  "desc": "",
+                  "clickable": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1081,
+                    "t": 30,
+                    "r": 1153,
+                    "b": 70
+                  },
+                  "text": "14:51",
+                  "id": "com.wohuatv.launcher:id/top_nav_time",
+                  "cls": "android.widget.TextView",
+                  "desc": "14:51",
+                  "clickable": false,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1166,
+                    "t": 35,
+                    "r": 1218,
+                    "b": 52
+                  },
+                  "text": "07月29日",
+                  "id": "com.wohuatv.launcher:id/date",
+                  "cls": "android.widget.TextView",
+                  "desc": "07月29日",
+                  "clickable": false,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1174,
+                    "t": 48,
+                    "r": 1210,
+                    "b": 65
+                  },
+                  "text": "星期三",
+                  "id": "com.wohuatv.launcher:id/week",
+                  "cls": "android.widget.TextView",
+                  "desc": "星期三",
+                  "clickable": false,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 0,
+                    "t": 0,
+                    "r": 1280,
+                    "b": 800
+                  },
+                  "text": "",
+                  "id": "",
+                  "cls": "android.widget.FrameLayout",
+                  "desc": "",
+                  "clickable": false,
+                  "children": [
+                    {
+                      "bounds": {
+                        "l": 0,
+                        "t": 0,
+                        "r": 1280,
+                        "b": 800
+                      },
+                      "text": "",
+                      "id": "com.wohuatv.launcher:id/category_templet_rcv",
+                      "cls": "android.support.v7.widget.RecyclerView",
+                      "desc": "",
+                      "clickable": false,
+                      "children": [
+                        {
+                          "bounds": {
+                            "l": 44,
+                            "t": 0,
+                            "r": 1236,
+                            "b": 800
+                          },
+                          "text": "",
+                          "id": "",
+                          "cls": "android.widget.RelativeLayout",
+                          "desc": "",
+                          "clickable": false,
+                          "children": [
+                            {
+                              "bounds": {
+                                "l": 162,
+                                "t": 620,
+                                "r": 1118,
+                                "b": 770
+                              },
+                              "text": "",
+                              "id": "com.wohuatv.launcher:id/smart_screen_recyclerview",
+                              "cls": "android.support.v7.widget.RecyclerView",
+                              "desc": "",
+                              "clickable": false,
+                              "children": [
+                                {
+                                  "bounds": {
+                                    "l": 172,
+                                    "t": 620,
+                                    "r": 276,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 176,
+                                        "t": 620,
+                                        "r": 272,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 184,
+                                        "t": 716,
+                                        "r": 264,
+                                        "b": 740
+                                      },
+                                      "text": "推荐",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 276,
+                                    "t": 620,
+                                    "r": 380,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 288,
+                                        "t": 630,
+                                        "r": 368,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 288,
+                                        "t": 716,
+                                        "r": 368,
+                                        "b": 740
+                                      },
+                                      "text": "看电视",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 380,
+                                    "t": 620,
+                                    "r": 484,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 392,
+                                        "t": 630,
+                                        "r": 472,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 392,
+                                        "t": 716,
+                                        "r": 472,
+                                        "b": 740
+                                      },
+                                      "text": "免费专区",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 484,
+                                    "t": 620,
+                                    "r": 588,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 496,
+                                        "t": 630,
+                                        "r": 576,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 496,
+                                        "t": 716,
+                                        "r": 576,
+                                        "b": 740
+                                      },
+                                      "text": "会员精选",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 588,
+                                    "t": 620,
+                                    "r": 692,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 600,
+                                        "t": 630,
+                                        "r": 680,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 600,
+                                        "t": 716,
+                                        "r": 680,
+                                        "b": 740
+                                      },
+                                      "text": "喜马拉雅",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 692,
+                                    "t": 620,
+                                    "r": 796,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 704,
+                                        "t": 630,
+                                        "r": 784,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 704,
+                                        "t": 716,
+                                        "r": 784,
+                                        "b": 740
+                                      },
+                                      "text": "酷狗音乐",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 796,
+                                    "t": 620,
+                                    "r": 900,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 808,
+                                        "t": 630,
+                                        "r": 888,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 808,
+                                        "t": 716,
+                                        "r": 888,
+                                        "b": 740
+                                      },
+                                      "text": "学习",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 900,
+                                    "t": 620,
+                                    "r": 1004,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 912,
+                                        "t": 630,
+                                        "r": 992,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 912,
+                                        "t": 716,
+                                        "r": 992,
+                                        "b": 740
+                                      },
+                                      "text": "视频通话",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 1004,
+                                    "t": 620,
+                                    "r": 1108,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 1016,
+                                        "t": 630,
+                                        "r": 1096,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 1016,
+                                        "t": 716,
+                                        "r": 1096,
+                                        "b": 740
+                                      },
+                                      "text": "看家",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 1108,
+                                    "t": 620,
+                                    "r": 1118,
+                                    "b": 770
+                                  },
+                                  "text": "",
+                                  "id": "",
+                                  "cls": "android.widget.RelativeLayout",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": [
+                                    {
+                                      "bounds": {
+                                        "l": 1120,
+                                        "t": 630,
+                                        "r": 1118,
+                                        "b": 710
+                                      },
+                                      "text": "",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content",
+                                      "cls": "android.widget.RelativeLayout",
+                                      "desc": "",
+                                      "clickable": true,
+                                      "children": []
+                                    },
+                                    {
+                                      "bounds": {
+                                        "l": 1120,
+                                        "t": 716,
+                                        "r": 1118,
+                                        "b": 740
+                                      },
+                                      "text": "云盘",
+                                      "id": "com.wohuatv.launcher:id/smart_screen_bottom_content_name",
+                                      "cls": "android.widget.TextView",
+                                      "desc": "",
+                                      "clickable": false,
+                                      "children": []
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "bounds": {
+                                "l": 44,
+                                "t": 0,
+                                "r": 45,
+                                "b": 1
+                              },
+                              "text": "",
+                              "id": "com.wohuatv.launcher:id/templet_cloud_smart_screen_focus",
+                              "cls": "android.view.View",
+                              "desc": "",
+                              "clickable": false,
+                              "children": []
+                            },
+                            {
+                              "bounds": {
+                                "l": 44,
+                                "t": 143,
+                                "r": 1236,
+                                "b": 800
+                              },
+                              "text": "",
+                              "id": "com.wohuatv.launcher:id/smart_screen_top_item1",
+                              "cls": "android.widget.RelativeLayout",
+                              "desc": "",
+                              "clickable": false,
+                              "children": [
+                                {
+                                  "bounds": {
+                                    "l": 60,
+                                    "t": 284,
+                                    "r": 581,
+                                    "b": 305
+                                  },
+                                  "text": "动画/喜剧",
+                                  "id": "com.wohuatv.launcher:id/cloud_label",
+                                  "cls": "android.widget.TextView",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": []
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 60,
+                                    "t": 320,
+                                    "r": 581,
+                                    "b": 403
+                                  },
+                                  "text": "熊大曾是森林里的“老大哥”，直到一个不速之客到来，它将自己神力传给了熊强，熊大变成了三人组合内能力最弱者。为了改变现状，他步入了反派陷阱，引发了毁天灭地的危机。",
+                                  "id": "com.wohuatv.launcher:id/cloud_brief",
+                                  "cls": "android.widget.TextView",
+                                  "desc": "",
+                                  "clickable": false,
+                                  "children": []
+                                },
+                                {
+                                  "bounds": {
+                                    "l": 60,
+                                    "t": 419,
+                                    "r": 150,
+                                    "b": 509
+                                  },
+                                  "text": "查看\n详情",
+                                  "id": "com.wohuatv.launcher:id/smart_screen_tv_play",
+                                  "cls": "android.widget.TextView",
+                                  "desc": "",
+                                  "clickable": true,
+                                  "children": []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "bounds": {
+                        "l": 0,
+                        "t": 0,
+                        "r": 1,
+                        "b": 1
+                      },
+                      "text": "",
+                      "id": "com.wohuatv.launcher:id/blank_view",
+                      "cls": "android.view.View",
+                      "desc": "",
+                      "clickable": false,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "bounds": {
+                    "l": 0,
+                    "t": 0,
+                    "r": 5,
+                    "b": 5
+                  },
+                  "text": "",
+                  "id": "com.wohuatv.launcher:id/main_default_focus",
+                  "cls": "android.view.View",
+                  "desc": "",
+                  "clickable": false,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

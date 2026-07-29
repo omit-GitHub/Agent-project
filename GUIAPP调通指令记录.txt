@@ -1,0 +1,71 @@
+============================================================
+  GUIAPP-main 调通指令记录（2026-07-29）
+  设备：7ZA6DJKWS3
+============================================================
+
+【0. 前提：设 Java 环境（PowerShell）】
+$env:JAVA_HOME = "D:\AndroidStudio\jbr"
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+java -version
+    => 当前是 openjdk 21.0.10（原 17.0.2 已升级，兼容能编）
+
+------------------------------------------------------------
+【1. 修 Gradle 下载超时（关键！原仓库直连 services.gradle.org 必超时）】
+
+编辑文件：D:\GUIAPP-main\gradle\wrapper\gradle-wrapper.properties
+    把 distributionUrl 改成腾讯云镜像：
+        distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-9.0.0-bin.zip
+    把 networkTimeout 改成 60000：
+        networkTimeout=60000
+
+------------------------------------------------------------
+【2. 构建 APK（PowerShell）】
+cd D:\GUIAPP-main
+.\gradlew.bat clean assembleDebug
+
+确认产物：
+Test-Path .\app\build\outputs\apk\debug\app-debug.apk
+    => True
+
+------------------------------------------------------------
+【3. 卸载旧版 + 安装新版】
+adb -s 7ZA6DJKWS3 uninstall com.guiagent.executor
+adb -s 7ZA6DJKWS3 install -r .\app\build\outputs\apk\debug\app-debug.apk
+
+------------------------------------------------------------
+【4. 开启无障碍服务】
+adb -s 7ZA6DJKWS3 shell settings put secure enabled_accessibility_services com.guiagent.executor/com.guiagent.executor.GuiAgentService
+adb -s 7ZA6DJKWS3 shell settings put secure accessibility_enabled 1
+
+------------------------------------------------------------
+【5. 建 adb 隧道（注意：新版是 8322，不是老版 8321！）】
+adb -s 7ZA6DJKWS3 forward --remove-all
+adb -s 7ZA6DJKWS3 forward tcp:8322 tcp:8322
+adb forward --list
+    => 7ZA6DJKWS3 tcp:8322 tcp:8322
+
+可选：验证设备上 ws 端口确实在监听（8322 = 0x2082，0A = LISTEN）：
+adb -s 7ZA6DJKWS3 shell "cat /proc/net/tcp /proc/net/tcp6" | Select-String "2082"
+
+------------------------------------------------------------
+【6. ping 一下验证链路】
+$env:PYTHONUTF8 = "1"
+python .\send.py '{\"id\":\"1\",\"op\":\"ping\",\"args\":{}}'
+
+返回 pong + 屏幕信息就通了：
+    {"id":"1","ok":true,"data":{"pong":true,"pkg":"com.guiagent.executor","screen":{"w":1280,"h":800,"sdk":28}}}
+
+------------------------------------------------------------
+【7. 跑脚本】
+python .\run-search.py 庆余年
+
+============================================================
+【新版 vs 老版 关键差异】（容易踩坑的地方）
+============================================================
+1. 端口：        8321  ->  8322
+2. 隧道目标：    localabstract:@guiagent  ->  tcp:8322
+3. 传输协议：    老 unix socket  ->  WebSocket (ws://127.0.0.1:8322/guiagent)
+4. 现在可以不用 adb forward，只要 PC 能 ping 到设备内网 IP，直接：
+       $env:GUIAGENT_WS_HOST = "192.168.x.x"
+       python .\send.py ...
+   更快更稳

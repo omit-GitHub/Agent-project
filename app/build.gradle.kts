@@ -24,7 +24,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 // 纯 Java,无 AndroidX、无 UI、无 native 库 -> universal APK,32 位 armeabi-v7a 可装
-dependencies { }
+dependencies {
+    // 单元测试(TDD,JVM 跑,纯逻辑,无 Android 依赖)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:4.11.0")
+}

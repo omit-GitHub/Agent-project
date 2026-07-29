@@ -17,10 +17,9 @@
   python run-speed.py 1                  # 切到 1x(正常速)
   python run-speed.py 0.75                # 切到 0.75x
   python run-speed.py 1.5 <speed-btn-id> # 指定倍速按钮 res-id(跳过 desc 猜测,最稳)
-  GUIAGENT_TRANSPORT=local python run-speed.py 1.5   # 设备本机直连
 
 前置: 已在播放器界面(先跑 run-search.py + run-play.py 进入某片源)。
-      设备已开 GUIAgent 无障碍服务,且 `adb forward tcp:8321 localabstract:@guiagent`。
+      设备已开 GUIAgent 无障碍服务(ws 随无障碍常驻;PC 直连设备填 GUIAGENT_WS_HOST=<设备IP> 或先 adb forward tcp:8322 tcp:8322)。
 """
 import json, sys, time
 from send import send
@@ -128,7 +127,7 @@ def main():
     # 1. ping 拿屏幕尺寸
     r1 = op(1, "ping")
     if not r1.get("ok"):
-        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
+        sys.exit("ping 失败——确认无障碍服务已开且 ws 可达(设 GUIAGENT_WS_HOST=<设备IP> 或 adb forward tcp:8322 tcp:8322)")
     screen = r1["data"].get("screen", {})
     w, h = screen.get("w", 1280), screen.get("h", 800)
     cx, cy = w // 2, h // 2

@@ -1,0 +1,23 @@
+{
+  "id": "2",
+  "ok": true,
+  "data": {
+    "nodes": [
+      {
+        "bounds": {
+          "l": 92,
+          "t": 28,
+          "r": 806,
+          "b": 79
+        },
+        "text": "先导片 庞博携60组演员开启盲盒抢金赛 翟…",
+        "id": "com.qiyi.video.speaker:id/video_title",
+        "cls": "android.widget.TextView",
+        "desc": "",
+        "clickable": true,
+        "scrollable": false,
+        "enabled": true
+      }
+    ]
+  }
+}
