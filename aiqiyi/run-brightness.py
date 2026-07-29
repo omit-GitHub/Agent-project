@@ -1,0 +1,83 @@
+# -*- coding: utf-8 -*-
+"""爱奇艺调亮度适配 —— 左侧垂直慢滑。
+
+包名: com.qiyi.video.speaker (中屏定制版)
+
+实测结论: 爱奇艺播放页**支持**左侧垂直慢滑调亮度(swipe duration=400ms)。
+亮度调节走窗口级覆盖(WindowManager), 不改系统 settings,
+用 `dumpsys display` 的 mBrightness 可观察到变化。
+
+**亮度幅度控制**：通过滑动距离（占屏高百分比）和 duration 调节每次改变的亮度幅度
+  - 当前参数：滑动距离 15% 屏高（0.425-0.575），duration 400ms
+  - 每次 up/down 约改变一定亮度级别
+  - 如需调整：减小距离/缩短 duration → 亮度变化更小；反之更大
+
+策略: 屏幕左侧 (x=w*0.25) 垂直慢滑:
+  - 上滑(y 大→小) = 调亮
+  - 下滑(y 小→大) = 调暗
+  一次手势改变一定亮度; 调多格传次数。
+
+用法:
+  python aiqiyi/run-brightness.py up            # 调亮一格
+  python aiqiyi/run-brightness.py down          # 调暗一格
+  python aiqiyi/run-brightness.py up 3          # 调亮三格
+  GUIAGENT_TRANSPORT=local python aiqiyi/run-brightness.py up
+
+前置: 已在爱奇艺播放页。
+      设备已开 GUIAgent 无障碍, 且 adb forward tcp:8321 localabstract:@guiagent。
+"""
+import json, os, sys, time
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from send import send
+
+
+def op(i, name, **args):
+    r = send({"id": str(i), "op": name, "args": args})
+    print(f"[{i}] {name} -> ok={r.get('ok')} "
+          f"{json.dumps(r.get('data', r.get('err')), ensure_ascii=False)}")
+    return r
+
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] not in ("up", "down"):
+        sys.exit("用法: python aiqiyi/run-brightness.py up|down [次数]\n"
+                 "  up=调亮  down=调暗  (次数默认 1)")
+    direction = sys.argv[1]
+    count = 1
+    if len(sys.argv) > 2:
+        try:
+            count = int(sys.argv[2])
+            if count < 1:
+                sys.exit("次数须 >= 1")
+        except ValueError:
+            sys.exit(f"次数非法: {sys.argv[2]}")
+
+    # 1. ping 拿屏幕尺寸
+    r1 = op(1, "ping")
+    if not r1.get("ok"):
+        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
+    screen = r1["data"].get("screen", {})
+    w, h = screen.get("w", 1280), screen.get("h", 800)
+
+    # 2. 算左侧垂直慢滑起止点(爱奇艺已确认支持)
+    cx = int(w * 0.25)     # 屏幕左侧四分位
+    y_lo = int(h * 0.425)  # 上端
+    y_hi = int(h * 0.575)  # 下端
+    if direction == "up":
+        x1, y1, x2, y2 = cx, y_hi, cx, y_lo   # 上滑 = 调亮
+    else:
+        x1, y1, x2, y2 = cx, y_lo, cx, y_hi   # 下滑 = 调暗
+
+    # 3. 连滑 count 次
+    DUR = 400   # ms, 中等速度
+    for k in range(count):
+        op(f"2.{k}", "swipe", x1=x1, y1=y1, x2=x2, y2=y2, duration=DUR)
+        if k < count - 1:
+            time.sleep(0.4)
+
+    print(f"\n已左侧{direction}滑 {count} 次 -> {'调亮' if direction=='up' else '调暗'}亮度")
+
+
+if __name__ == "__main__":
+    main()
