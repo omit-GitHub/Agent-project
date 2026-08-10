@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 对话气泡配色（T-B04）。 -->
+<resources>
+    <!-- 半透明深色底，适配车机深色 overlay -->
+    <!-- 文本：高对比白/浅灰 -->
+    <color name="bubble_text_user">#FFFFFF</color>
+    <color name="bubble_text_system">#FFFFFF</color>
+    <color name="voice_panel_bg_start">#E61B2030</color>
+    <color name="voice_panel_bg_end">#E6121623</color>
+    <color name="voice_panel_stroke">#4D91A7FF</color>
+    <color name="voice_status_text">#AFC4FF</color>
+    <color name="voice_user_message_bg">#CC334566</color>
+    <color name="voice_assistant_message_bg">#80342E57</color>
+    <color name="voice_role_user">#8FA8C8</color>
+    <color name="voice_role_assistant">#C2B8FF</color>
+</resources>

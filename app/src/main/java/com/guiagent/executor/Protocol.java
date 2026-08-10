@@ -57,6 +57,7 @@ public class Protocol {
             case "swipe": return swipe(svc, a);
             case "gesture": return gesture(svc, a);
             case "global": return global(svc, a);
+            case "remote_key": return remoteKey(svc, a);
             case "wait": return wait(svc, a);
             case "start": return start(svc, a);
             case "": throw new Err("BAD_ARGS", "missing op");
@@ -219,6 +220,28 @@ public class Protocol {
             default: throw new Err("BAD_ARGS", "bad action: " + act);
         }
         return new JSONObject().put("ok", svc.global(ga));
+    }
+
+    // ---------- 遥控器 ----------
+    private static JSONObject remoteKey(GuiAgentService svc, JSONObject a) throws JSONException {
+        String key = a.optString("key", "").trim();
+        if (key.isEmpty()) throw new Err("BAD_ARGS", "missing remote key");
+        int repeat = a.optInt("repeat", 1);
+        if (repeat < 1 || repeat > 20) throw new Err("BAD_ARGS", "repeat must be between 1 and 20");
+
+        JSONObject last = null;
+        for (int i = 0; i < repeat; i++) {
+            last = svc.remoteKey(key, 1800L);
+            if (i + 1 < repeat) {
+                try {
+                    Thread.sleep(120L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new Err("INTERRUPTED", "remote key repeat interrupted");
+                }
+            }
+        }
+        return new JSONObject().put("key", last.optString("key", key)).put("repeat", repeat).put("last", last);
     }
 
     private static JSONObject wait(GuiAgentService svc, JSONObject a) throws JSONException {

@@ -3,7 +3,7 @@
     android:accessibilityEventTypes="typeAllMask"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault|flagReportViewIds|flagRetrieveInteractiveWindows|flagRequestAccessibilityButton"
-    android:canRetrieveWindowContent="true"
     android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
     android:notificationTimeout="100"
-    android:description="@string/accessibility_description" />
+    android:description="@string/app_name" />

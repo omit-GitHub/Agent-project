@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底部语音状态卡：唤醒后立即出现，光球与文案同步真实语音阶段。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_voice_panel"
+    android:gravity="top"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/voice_panel_padding_h"
+    android:paddingVertical="@dimen/voice_panel_padding_v">
+
+    <com.huawei.aifttr.digitalpersonshell.ui.bubble.VoiceOrbView
+        android:id="@+id/voice_orb"
+        android:layout_width="@dimen/voice_orb_size"
+        android:layout_height="@dimen/voice_orb_size"
+        android:layout_marginTop="2dp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/voice_content_gap"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_voice_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/voice_status_listening"
+            android:textColor="@color/voice_status_text"
+            android:textSize="@dimen/voice_status_text_size" />
+
+        <LinearLayout
+            android:id="@+id/user_message_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/voice_message_gap"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="@dimen/voice_role_width"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/voice_role_user"
+                android:textColor="@color/voice_role_user"
+                android:textSize="@dimen/voice_role_text_size" />
+
+            <TextView
+                android:id="@+id/tv_user_bubble"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_voice_user_message"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="7dp"
+                android:singleLine="true"
+                android:textColor="@color/bubble_text_user"
+                android:textSize="@dimen/bubble_text_size" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/assistant_message_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/voice_message_gap"
+            android:background="@drawable/bg_voice_assistant_message"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="@dimen/voice_role_width"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/voice_role_assistant"
+                android:textColor="@color/voice_role_assistant"
+                android:textSize="@dimen/voice_role_text_size" />
+
+            <TextView
+                android:id="@+id/tv_system_bubble"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:textColor="@color/bubble_text_system"
+                android:textSize="@dimen/bubble_text_size" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

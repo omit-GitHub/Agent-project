@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 对话气泡尺寸（T-B04）。 -->
+<resources>
+    <!-- 正文 17sp（落在 16–18sp 推断区间） -->
+    <dimen name="bubble_text_size">17sp</dimen>
+    <dimen name="voice_panel_corner_radius">24dp</dimen>
+    <dimen name="voice_panel_padding_h">18dp</dimen>
+    <dimen name="voice_panel_padding_v">14dp</dimen>
+    <dimen name="voice_panel_margin_bottom">28dp</dimen>
+    <dimen name="voice_orb_size">54dp</dimen>
+    <dimen name="voice_content_gap">14dp</dimen>
+    <dimen name="voice_status_text_size">14sp</dimen>
+    <dimen name="voice_role_text_size">12sp</dimen>
+    <dimen name="voice_message_gap">8dp</dimen>
+    <dimen name="voice_role_width">42dp</dimen>
+</resources>

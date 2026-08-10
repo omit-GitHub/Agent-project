@@ -1,0 +1,234 @@
+{
+  "id": "602",
+  "ok": true,
+  "data": {
+    "pkg": "com.guiagent.executor",
+    "window": {
+      "bounds": {
+        "l": 0,
+        "t": 0,
+        "r": 1280,
+        "b": 800
+      },
+      "text": "",
+      "id": "",
+      "cls": "android.widget.FrameLayout",
+      "desc": "",
+      "clickable": false,
+      "scrollable": false,
+      "enabled": true,
+      "children": [
+        {
+          "bounds": {
+            "l": 0,
+            "t": 42,
+            "r": 1280,
+            "b": 127
+          },
+          "text": "",
+          "id": "com.tencent.qqlive.audiobox:id/lw_title_container",
+          "cls": "android.widget.RelativeLayout",
+          "desc": "",
+          "clickable": false,
+          "scrollable": false,
+          "enabled": true,
+          "children": [
+            {
+              "bounds": {
+                "l": 75,
+                "t": 62,
+                "r": 120,
+                "b": 107
+              },
+              "text": "",
+              "id": "com.tencent.qqlive.audiobox:id/title_back",
+              "cls": "android.widget.ImageView",
+              "desc": "返回",
+              "clickable": true,
+              "scrollable": false,
+              "enabled": true,
+              "children": []
+            },
+            {
+              "bounds": {
+                "l": 137,
+                "t": 70,
+                "r": 988,
+                "b": 99
+              },
+              "text": "黑白禁区 第09集",
+              "id": "com.tencent.qqlive.audiobox:id/video_title",
+              "cls": "android.widget.TextView",
+              "desc": "",
+              "clickable": false,
+              "scrollable": false,
+              "enabled": false,
+              "children": []
+            },
+            {
+              "bounds": {
+                "l": 137,
+                "t": 102,
+                "r": 475,
+                "b": 122
+              },
+              "text": "",
+              "id": "com.tencent.qqlive.audiobox:id/video_creator",
+              "cls": "android.widget.TextView",
+              "desc": "",
+              "clickable": false,
+              "scrollable": false,
+              "enabled": true,
+              "children": []
+            },
+            {
+              "bounds": {
+                "l": 1005,
+                "t": 59,
+                "r": 1109,
+                "b": 109
+              },
+              "text": "开通VIP",
+              "id": "com.tencent.qqlive.audiobox:id/player_heart_btn",
+              "cls": "android.widget.TextView",
+              "desc": "",
+              "clickable": true,
+              "scrollable": false,
+              "enabled": true,
+              "children": []
+            },
+            {
+              "bounds": {
+                "l": 1149,
+                "t": 56,
+                "r": 1205,
+                "b": 112
+              },
+              "text": "",
+              "id": "com.tencent.qqlive.audiobox:id/follow_btn",
+              "cls": "android.widget.ImageView",
+              "desc": "在追",
+              "clickable": true,
+              "scrollable": false,
+              "enabled": true,
+              "children": []
+            }
+          ]
+        },
+        {
+          "bounds": {
+            "l": 105,
+            "t": 727,
+            "r": 150,
+            "b": 772
+          },
+          "text": "",
+          "id": "com.tencent.qqlive.audiobox:id/playBtn",
+          "cls": "android.widget.ImageView",
+          "desc": "播放",
+          "clickable": true,
+          "scrollable": false,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "bounds": {
+            "l": 192,
+            "t": 727,
+            "r": 237,
+            "b": 772
+          },
+          "text": "",
+          "id": "com.tencent.qqlive.audiobox:id/nextPlay",
+          "cls": "android.widget.ImageView",
+          "desc": "下一集",
+          "clickable": true,
+          "scrollable": false,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "bounds": {
+            "l": 797,
+            "t": 728,
+            "r": 861,
+            "b": 771
+          },
+          "text": "",
+          "id": "com.tencent.qqlive.audiobox:id/episode_select_list",
+          "cls": "android.widget.LinearLayout",
+          "desc": "选集",
+          "clickable": true,
+          "scrollable": false,
+          "enabled": false,
+          "children": [
+            {
+              "bounds": {
+                "l": 804,
+                "t": 735,
+                "r": 854,
+                "b": 764
+              },
+              "text": "选集",
+              "id": "com.tencent.qqlive.audiobox:id/episode_btn",
+              "cls": "android.widget.TextView",
+              "desc": "",
+              "clickable": false,
+              "scrollable": false,
+              "enabled": true,
+              "children": []
+            }
+          ]
+        },
+        {
+          "bounds": {
+            "l": 896,
+            "t": 728,
+            "r": 960,
+            "b": 771
+          },
+          "text": "简介",
+          "id": "com.tencent.qqlive.audiobox:id/tv_plot_introduction",
+          "cls": "android.widget.TextView",
+          "desc": "简介",
+          "clickable": true,
+          "scrollable": false,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "bounds": {
+            "l": 995,
+            "t": 728,
+            "r": 1059,
+            "b": 771
+          },
+          "text": "倍速",
+          "id": "com.tencent.qqlive.audiobox:id/player_play_speed_text",
+          "cls": "android.widget.TextView",
+          "desc": "倍速",
+          "clickable": true,
+          "scrollable": false,
+          "enabled": false,
+          "children": []
+        },
+        {
+          "bounds": {
+            "l": 1095,
+            "t": 725,
+            "r": 1182,
+            "b": 773
+          },
+          "text": "",
+          "id": "com.tencent.qqlive.audiobox:id/player_definition_text",
+          "cls": "android.widget.ImageView",
+          "desc": "清晰度",
+          "clickable": true,
+          "scrollable": false,
+          "enabled": false,
+          "children": []
+        }
+      ]
+    }
+  }
+}

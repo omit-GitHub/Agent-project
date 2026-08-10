@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 目标网关 IP 由 IpSupplier 动态解析（末段置 .1），无法按域名精确放行，
+         故全局允许明文。生产环境后续应升级为 wss:// 并收窄此处。 -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

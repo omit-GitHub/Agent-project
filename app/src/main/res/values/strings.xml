@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">GUIAgent</string>
-    <string name="accessibility_description">GUIAgent 指令执行器：通过本地 socket 接收确定性指令操控 APP，不依赖 root/adb。</string>
+    <string name="voice_status_listening">我在听</string>
+    <string name="voice_status_thinking">正在理解</string>
+    <string name="voice_status_speaking">小光正在回答</string>
+    <string name="voice_role_user">你</string>
+    <string name="voice_role_assistant">小光</string>
 </resources>

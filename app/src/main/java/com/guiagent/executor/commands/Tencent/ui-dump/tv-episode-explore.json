@@ -1,0 +1,634 @@
+{
+  "id": "3",
+  "ok": true,
+  "data": {
+    "pkg": "com.guiagent.executor",
+    "window": {
+      "bounds": {
+        "l": 0,
+        "t": 0,
+        "r": 1280,
+        "b": 800
+      },
+      "text": "",
+      "id": "",
+      "cls": "android.widget.FrameLayout",
+      "desc": "",
+      "clickable": false,
+      "scrollable": false,
+      "enabled": true,
+      "children": [
+        {
+          "bounds": {
+            "l": 0,
+            "t": 0,
+            "r": 1280,
+            "b": 800
+          },
+          "text": "",
+          "id": "com.tencent.qqlive.audiobox:id/episode_overlay_panel",
+          "cls": "android.widget.LinearLayout",
+          "desc": "",
+          "clickable": true,
+          "scrollable": false,
+          "enabled": true,
+          "children": [
+            {
+              "bounds": {
+                "l": 609,
+                "t": 6,
+                "r": 1238,
+                "b": 794
+              },
+              "text": "",
+              "id": "com.tencent.qqlive.audiobox:id/swipe_target",
+              "cls": "androidx.recyclerview.widget.RecyclerView",
+              "desc": "",
+              "clickable": false,
+              "scrollable": true,
+              "enabled": true,
+              "children": [
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 6,
+                    "r": 753,
+                    "b": 91
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "1",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 6,
+                    "r": 910,
+                    "b": 91
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "2",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 6,
+                    "r": 1067,
+                    "b": 91
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "3",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 6,
+                    "r": 1224,
+                    "b": 91
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "4",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 102,
+                    "r": 753,
+                    "b": 187
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "5",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 102,
+                    "r": 910,
+                    "b": 187
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "6",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 102,
+                    "r": 1067,
+                    "b": 187
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "7",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 102,
+                    "r": 1224,
+                    "b": 187
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "8",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 198,
+                    "r": 753,
+                    "b": 283
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "9",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 198,
+                    "r": 910,
+                    "b": 283
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "10",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 198,
+                    "r": 1067,
+                    "b": 283
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "11",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 198,
+                    "r": 1224,
+                    "b": 283
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "12",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 294,
+                    "r": 753,
+                    "b": 379
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "13",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 294,
+                    "r": 910,
+                    "b": 379
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "14",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 294,
+                    "r": 1067,
+                    "b": 379
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "15",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 294,
+                    "r": 1224,
+                    "b": 379
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "16",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 390,
+                    "r": 753,
+                    "b": 475
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "17",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 390,
+                    "r": 910,
+                    "b": 475
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "18",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 390,
+                    "r": 1067,
+                    "b": 475
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "19",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 390,
+                    "r": 1224,
+                    "b": 475
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "20",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 486,
+                    "r": 753,
+                    "b": 571
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "21",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 486,
+                    "r": 910,
+                    "b": 571
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "22",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 486,
+                    "r": 1067,
+                    "b": 571
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "23",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 486,
+                    "r": 1224,
+                    "b": 571
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "24",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 582,
+                    "r": 753,
+                    "b": 667
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "25",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 582,
+                    "r": 910,
+                    "b": 667
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "26",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 582,
+                    "r": 1067,
+                    "b": 667
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "27",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 582,
+                    "r": 1224,
+                    "b": 667
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "28",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 678,
+                    "r": 753,
+                    "b": 763
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "29",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 678,
+                    "r": 910,
+                    "b": 763
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "30",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 678,
+                    "r": 1067,
+                    "b": 763
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "31",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 678,
+                    "r": 1224,
+                    "b": 763
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "32",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 609,
+                    "t": 774,
+                    "r": 753,
+                    "b": 794
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "33",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 766,
+                    "t": 774,
+                    "r": 910,
+                    "b": 794
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "34",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 923,
+                    "t": 774,
+                    "r": 1067,
+                    "b": 794
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "35",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                },
+                {
+                  "bounds": {
+                    "l": 1080,
+                    "t": 774,
+                    "r": 1224,
+                    "b": 794
+                  },
+                  "text": "",
+                  "id": "com.tencent.qqlive.audiobox:id/container",
+                  "cls": "android.widget.RelativeLayout",
+                  "desc": "36",
+                  "clickable": true,
+                  "scrollable": false,
+                  "enabled": true,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

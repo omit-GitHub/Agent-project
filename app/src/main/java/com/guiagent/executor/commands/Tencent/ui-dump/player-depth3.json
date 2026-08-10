@@ -1,0 +1,23 @@
+{
+  "id": "11",
+  "ok": true,
+  "data": {
+    "pkg": "com.guiagent.executor",
+    "window": {
+      "bounds": {
+        "l": 0,
+        "t": 0,
+        "r": 1280,
+        "b": 800
+      },
+      "text": "",
+      "id": "",
+      "cls": "android.widget.FrameLayout",
+      "desc": "",
+      "clickable": false,
+      "scrollable": false,
+      "enabled": true,
+      "children": []
+    }
+  }
+}
