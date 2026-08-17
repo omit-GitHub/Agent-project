@@ -13,8 +13,8 @@
 """
 
 # 顶层能力入口（详细实现在子包）
-# 当前已实现：state (Phase 0) + reveal (Phase 2)
-# 后续：dpad (Phase 3) + verify (Phase 4) + screen (Phase 6) + ocr (Phase 6)
+# 当前已实现：state (Phase 0) + reveal (Phase 2) + dpad (Phase 3)
+# 后续：verify (Phase 4) + screen (Phase 6) + ocr (Phase 6)
 
 from .state import (
     resolve_state,
@@ -30,6 +30,13 @@ from .reveal import (
     detect_control_bar,
     detect_app_from_pkg,
 )
+from .dpad import (
+    dpad_press,
+    dpad_navigate,
+    dpad_confirm,
+    focus_element,
+    detect_focus_change,
+)
 
 __all__ = [
     # State Resolver
@@ -44,4 +51,10 @@ __all__ = [
     "reveal_controls",
     "detect_control_bar",
     "detect_app_from_pkg",
+    # DPAD Executor
+    "dpad_press",
+    "dpad_navigate",
+    "dpad_confirm",
+    "focus_element",
+    "detect_focus_change",
 ]

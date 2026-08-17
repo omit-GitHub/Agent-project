@@ -123,6 +123,14 @@ def register_all_commands():
 
     register("reveal_controls",            reveal_module.run)
 
+    # ── Observation: DPAD Executor (Phase 3) ──
+    from observation.dpad import executor as dpad_executor
+
+    register("dpad_press",                 dpad_executor.run_press)
+    register("dpad_navigate",              dpad_executor.run_navigate)
+    register("dpad_confirm",               dpad_executor.run_confirm)
+    register("focus_element",              dpad_executor.run_focus_element)
+
 
 # ─────────────────────── HTTP 处理器 ───────────────────────
 
