@@ -1,88 +1,78 @@
 # -*- coding: utf-8 -*-
-"""爱奇艺播放/暂停适配。
+"""爱奇艺播放/暂停 — v2 重构版。
 
-包名: com.qiyi.video.speaker (中屏定制版)
-策略:
-  1. ping 拿屏幕尺寸;
-  2. tap 中心唤出控制条(控制条默认隐藏, 约 5-8s 后自动隐藏);
-  3. 等 0.8s 后 click_node id=btn_pause 精确点击;
-  4. 失败则用坐标 tap 兜底。
+新流程:
+  1. resolve_state() 检查 page_type == 'player'
+  2. 期望的播放状态 = not 当前状态
+  3. action(): 控制条未显 → reveal_controls；然后 click_node(btn_pause)
+  4. verify_after_action(predicate=playing_state_changed(expected))
+  5. 返回 success_with_data 包含 verification 信息
 
-用法:
-  python aiqiyi/run-toggle.py
-
-前置: 已在爱奇艺播放页(先跑 run-search.py + run-play.py 选爱奇艺片源进入)。
-      设备已开 GUIAgent 无障碍, 且 adb forward tcp:8322 tcp:8322。
+外部 API 完全保持兼容: run(params) → dict
 """
-import json, os, sys, time
+import os
+import sys
 
-# 让 aiqiyi/ 下的脚本能找到根目录的 send.py
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from send import send
-from common.utils import success, error
+_HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
-# 爱奇艺播放/暂停按钮 res-id
-BTN_PAUSE_ID = "com.qiyi.video.speaker:id/btn_pause"
-# 兜底坐标(btn_pause 的 bounds 中心)
-BTN_PAUSE_X = 55    # (19+92)//2
-BTN_PAUSE_Y = 724   # (692+757)//2
+from common.utils import success_with_data, error, click_node_by_id, tap  # noqa: E402
+from observation.state import resolve_state                                 # noqa: E402
+from observation.reveal import reveal_controls                              # noqa: E402
+from observation.verify import verify_after_action                          # noqa: E402
+from observation.verify.predicates import playing_state_changed             # noqa: E402
+from observation.verify.recovery import re_reveal                           # noqa: E402
 
-
-def op(i, name, **args):
-    r = send({"id": str(i), "op": name, "args": args})
-    print(f"[{i}] {name} -> ok={r.get('ok')} "
-          f"{json.dumps(r.get('data', r.get('err')), ensure_ascii=False)}")
-    return r
-
-
-def main():
-    # 1. ping 拿屏幕尺寸
-    r1 = op(1, "ping")
-    if not r1.get("ok"):
-        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
-    screen = r1["data"].get("screen", {})
-    w, h = screen.get("w", 1280), screen.get("h", 800)
-    cx, cy = w // 2, h // 2
-
-    # 2. tap 顶部唤出控制条(避免 tap 中心误触播放/暂停)
-    op(2, "tap", x=cx, y=200)
-    time.sleep(0.8)
-
-    # 3. click_node 精确点击 btn_pause
-    r3 = op(3, "click_node", id=BTN_PAUSE_ID)
-    if r3.get("ok"):
-        print(f"\n已点击播放/暂停按钮(id=btn_pause)")
-        return
-
-    # 4. 兜底: 坐标 tap
-    print(f"click_node 失败({r3.get('err')}), 改走坐标 tap")
-    op(4, "tap", x=BTN_PAUSE_X, y=BTN_PAUSE_Y)
-    print(f"\n已点击播放/暂停按钮(坐标 {BTN_PAUSE_X},{BTN_PAUSE_Y})")
+from . import _shared as S  # noqa: E402
 
 
 def run(params=None):
-    """Registry 入口 — aiqiyi.toggle_play。"""
-    # 1. ping 拿屏幕尺寸
-    r1 = op(1, "ping")
-    if not r1.get("ok"):
-        return error("EXECUTION_FAILED", "ping failed")
-    screen = r1["data"].get("screen", {})
-    w, h = screen.get("w", 1280), screen.get("h", 800)
-    cx, cy = w // 2, h // 2
+    """切换播放/暂停。"""
+    # 1. 拿当前状态
+    state = resolve_state()
+    if not state.is_player_page:
+        return error("WRONG_PAGE",
+                     f"Not on player page (current: {state.page_type}, pkg: {state.pkg})")
 
-    # 2. tap 顶部唤出控制条
-    op(2, "tap", x=cx, y=200)
-    time.sleep(0.8)
+    # 2. 决定期望的播放状态
+    current_playing = (
+        state.player.is_playing if state.player and state.player.is_playing is not None
+        else None
+    )
+    # 如果当前状态未知，假设期望切换（toggle 语义）
+    expected_playing = not current_playing if current_playing is not None else None
 
-    # 3. click_node 精确点击 btn_pause
-    r3 = op(3, "click_node", id=BTN_PAUSE_ID)
-    if r3.get("ok"):
-        return success("aiqiyi.toggle_play", "toggled")
+    # 3. 定义 action
+    def action():
+        # 控制条未显 → 先唤出
+        current_state = resolve_state()
+        if current_state.player and not current_state.player.control_bar_visible:
+            reveal_result = reveal_controls(app=S.APP_NAME)
+            if not reveal_result.get("ok"):
+                return reveal_result
+        # 节点点击（优先），失败降级到坐标
+        r = click_node_by_id(S.BTN_PAUSE_ID)
+        if not r.get("ok"):
+            r = tap(S.BTN_PAUSE_X, S.BTN_PAUSE_Y)
+        return r
 
-    # 4. 兜底: 坐标 tap
-    op(4, "tap", x=BTN_PAUSE_X, y=BTN_PAUSE_Y)
-    return success("aiqiyi.toggle_play", "toggled (fallback)")
+    # 4. 带验证的执行
+    result = verify_after_action(
+        action_fn=action,
+        predicate=playing_state_changed(expected_playing) if expected_playing is not None
+                  else None,  # 状态未知时跳过验证
+        recover_fn=re_reveal(app=S.APP_NAME),
+        max_retries=1,
+        verify_timeout_ms=3000,
+    )
 
-
-if __name__ == "__main__":
-    main()
+    # 5. 返回
+    data = {
+        "result": "toggled",
+        "expected_playing": expected_playing,
+    }
+    if result.verification:
+        data["verification"] = result.verification.to_dict()
+    data["recovered"] = result.recovered
+    return success_with_data("aiqiyi.toggle_play", data)

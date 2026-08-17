@@ -1,142 +1,63 @@
 # -*- coding: utf-8 -*-
-"""腾讯视频调倍速。
+"""腾讯视频调倍速 — v2 重构版。
 
-包名: com.tencent.qqlive.audiobox (中屏定制版)
-
-策略:
-  1. ping 拿屏幕尺寸
-  2. tap 顶部 (640, 200) 唤出控制条
-  3. 等 1.5s 后 tap 倍速按钮 (1027, 749)
-  4. 等 1s 让面板渲染
-  5. find 目标倍速选项（文本匹配）
-  6. tap 选项坐标
-
-倍速选项（5 档）:
-  - 0.5X:  (684, 183)
-  - 0.75X: (852, 183)
-  - 1.0X:  (1020, 183)
-  - 1.25X: (1187, 183)
-  - 1.5X:  (684, 284)
-
-用法:
-  python Tencent/run-speed.py 1.5
-  python Tencent/run-speed.py 0.75
-  python Tencent/run-speed.py 1.0
-
-前置: 已在腾讯视频播放页。
-      设备已开 GUIAgent 无障碍，且 adb forward tcp:8322 tcp:8322。
+腾讯视频目前倍速选项直接用坐标点击（无节点 ID 可查）。
+新流程: resolve → reveal → tap 倍速按钮 → tap 坐标 → verify。
 """
-import json, os, sys, time
+import os
+import sys
+import time
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from send import send
+_HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
-# 让本脚本也能找到 common/utils.py（供 run() 使用）
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
-from common.utils import success, error as make_error  # noqa: E402
+from common.utils import success_with_data, error, tap  # noqa: E402
+from observation.state import resolve_state              # noqa: E402
+from observation.reveal import reveal_controls           # noqa: E402
+from observation.verify import verify_after_action       # noqa: E402
+from observation.verify.predicates import speed_changed  # noqa: E402
+from observation.verify.recovery import re_reveal        # noqa: E402
 
-
-# 倍速按钮坐标
-SPEED_BTN_X = 1027   # (995+1059)//2
-SPEED_BTN_Y = 749    # (728+771)//2
-
-# 唤出控制条的坐标（顶部）
-WAKE_X = 640
-WAKE_Y = 200
-
-# 倍速选项坐标映射
-SPEED_OPTIONS = {
-    "0.5":  (684, 183),
-    "0.75": (852, 183),
-    "1.0":  (1020, 183),
-    "1.25": (1187, 183),
-    "1.5":  (684, 284),
-}
-
-# 倍速选项文本
-SPEED_TEXTS = {
-    "0.5":  "0.5X",
-    "0.75": "0.75X",
-    "1.0":  "1.0X",
-    "1.25": "1.25X",
-    "1.5":  "1.5X",
-}
-
-
-def op(i, name, **args):
-    r = send({"id": str(i), "op": name, "args": args})
-    print(f"[{i}] {name} -> ok={r.get('ok')} "
-          f"{json.dumps(r.get('data', r.get('err')), ensure_ascii=False)}")
-    return r
+from . import _shared as S  # noqa: E402
 
 
 def run(params=None):
-    """腾讯视频调倍速（可编程接口）。
+    """设置倍速。"""
+    params = params or {}
+    speed = params.get("speed") or (params.get("values", [None])[0] if params.get("values") else None)
+    if not speed:
+        return error("BAD_ARGS", "speed param required")
+    speed = str(speed)
 
-    对标 Java: TencentSetSpeedCommand → tencent.set_speed
+    coords = S.SPEED_OPTIONS.get(speed)
+    if not coords:
+        return error("UNSUPPORTED_SPEED",
+                     f"Unsupported speed: {speed}. Options: {list(S.SPEED_OPTIONS.keys())}")
 
-    Args:
-        params: 可选 dict，支持 {"speed": "1.5"}
-                可选值: 0.5, 0.75, 1.0, 1.25, 1.5
+    state = resolve_state()
+    if not state.is_player_page:
+        return error("WRONG_PAGE", f"Not on player page (current: {state.page_type})")
 
-    Returns:
-        dict: {"ok": True, "data": {"command": "tencent.set_speed", "result": "speed_1.5"}}
-              或 {"ok": False, "error": {"code": "...", "message": "..."}}
-    """
-    if not params or "speed" not in params:
-        return make_error("BAD_PARAMS", "Missing parameter: speed")
-
-    target = str(params["speed"])
-    if target not in SPEED_OPTIONS:
-        return make_error("BAD_PARAMS",
-                          f"Invalid speed: {target}. Valid: {', '.join(SPEED_OPTIONS.keys())}")
-
-    try:
-        # 1. tap 顶部唤出控制条
-        send({"id": "rs1", "op": "tap", "args": {"x": WAKE_X, "y": WAKE_Y}})
-        time.sleep(1.5)
-
-        # 2. tap 倍速按钮
-        send({"id": "rs2", "op": "tap", "args": {"x": SPEED_BTN_X, "y": SPEED_BTN_Y}})
+    def action():
+        if state.player and not state.player.control_bar_visible:
+            reveal_controls(app=S.APP_NAME)
+        # 打开倍速面板
+        tap(S.SPEED_BTN_X, S.SPEED_BTN_Y)
         time.sleep(1.0)
+        # 点击目标倍速坐标
+        return tap(*coords)
 
-        # 3. tap 目标倍速选项坐标
-        tx, ty = SPEED_OPTIONS[target]
-        send({"id": "rs3", "op": "tap", "args": {"x": tx, "y": ty}})
-        return success("tencent.set_speed", f"speed_{target}")
-    except Exception as e:
-        return make_error("EXECUTION_FAILED", str(e))
+    result = verify_after_action(
+        action_fn=action,
+        predicate=speed_changed(speed),
+        recover_fn=re_reveal(app=S.APP_NAME),
+        max_retries=1,
+        verify_timeout_ms=3000,
+    )
 
-
-def main():
-    if len(sys.argv) < 2:
-        sys.exit("用法: python Tencent/run-speed.py <倍速>\n"
-                 "可选: 0.5, 0.75, 1.0, 1.25, 1.5")
-
-    target = sys.argv[1]
-    if target not in SPEED_OPTIONS:
-        sys.exit(f"不支持的倍速: {target}\n可选: {', '.join(SPEED_OPTIONS.keys())}")
-
-    # 1. ping 拿屏幕尺寸
-    r1 = op(1, "ping")
-    if not r1.get("ok"):
-        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
-
-    # 2. tap 顶部唤出控制条
-    op(2, "tap", x=WAKE_X, y=WAKE_Y)
-    time.sleep(1.5)
-
-    # 3. tap 倍速按钮
-    op(3, "tap", x=SPEED_BTN_X, y=SPEED_BTN_Y)
-    time.sleep(1.0)
-
-    # 4. 用坐标 tap 目标倍速选项（比 find 更快更可靠）
-    tx, ty = SPEED_OPTIONS[target]
-    op(4, "tap", x=tx, y=ty)
-    print(f"\n已切换到 {target}X 倍速(坐标 {tx},{ty})")
-
-
-if __name__ == "__main__":
-    main()
+    data = {"result": f"set to {speed}", "speed": speed}
+    if result.verification:
+        data["verification"] = result.verification.to_dict()
+    data["recovered"] = result.recovered
+    return success_with_data("tencent.set_speed", data)
