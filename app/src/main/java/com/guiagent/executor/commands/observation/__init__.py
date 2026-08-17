@@ -13,8 +13,8 @@
 """
 
 # 顶层能力入口（详细实现在子包）
-# 当前已实现：state (Phase 0) + reveal (Phase 2) + dpad (Phase 3)
-# 后续：verify (Phase 4) + screen (Phase 6) + ocr (Phase 6)
+# 当前已实现：state (Phase 0) + reveal (Phase 2) + dpad (Phase 3) + verify (Phase 4)
+# 后续：screen (Phase 6) + ocr (Phase 6)
 
 from .state import (
     resolve_state,
@@ -37,6 +37,28 @@ from .dpad import (
     focus_element,
     detect_focus_change,
 )
+from .verify import (
+    verify,
+    verify_after_action,
+    VerificationResult,
+    AfterActionResult,
+    PredicateResult,
+    # 8 个谓词
+    bar_visible,
+    playing_state_changed,
+    episode_changed,
+    speed_changed,
+    quality_changed,
+    overlay_appeared,
+    node_present,
+    text_present,
+    # 恢复策略
+    re_reveal,
+    retry_dpad_enter,
+    wait_and_retry,
+    noop,
+    chain,
+)
 
 __all__ = [
     # State Resolver
@@ -57,4 +79,23 @@ __all__ = [
     "dpad_confirm",
     "focus_element",
     "detect_focus_change",
+    # Verification
+    "verify",
+    "verify_after_action",
+    "VerificationResult",
+    "AfterActionResult",
+    "PredicateResult",
+    "bar_visible",
+    "playing_state_changed",
+    "episode_changed",
+    "speed_changed",
+    "quality_changed",
+    "overlay_appeared",
+    "node_present",
+    "text_present",
+    "re_reveal",
+    "retry_dpad_enter",
+    "wait_and_retry",
+    "noop",
+    "chain",
 ]
