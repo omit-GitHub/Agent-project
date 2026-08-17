@@ -1,52 +1,70 @@
 # -*- coding: utf-8 -*-
-"""获取当前前台状态。通用命令，不区分 APP。
+"""获取当前前台状态（增强版）。
 
-返回前台应用包名 + 页面前若干条可见文本（去重后最多 12 条），
-供调用方判断"当前在哪个 App / 大概在哪个页面"，再决定使用哪组 App 命令。
+返回结构化状态：
+  - 基础信息：pkg, activity, summary (向后兼容旧 schema)
+  - 页面分类：page_type, app_category
+  - 播放器子状态：player.control_bar_visible / is_playing / current_speed / ...
+  - 焦点与浮层：focused_element, overlay
+  - 屏幕信息：screen_size, screen_version, dump_status
 
-对标 Java: GetStateCommand.java
+委托给 observation.state.resolve_state()，后者封装了 ping + dump + classify + detect。
 
-示例:
+示例响应（Player 页面，控制条可见）:
     POST /v1/compound  {"command":"get_state","params":{}}
-    -> {"ok":true,"data":{"command":"get_state","pkg":"com.qiyi.video.speaker",
-        "summary":["播放","选集","第3集","1080P"]}}
+    -> {"ok":true,"data":{
+         "command":"get_state",
+         "pkg":"com.qiyi.video.speaker",
+         "activity":"PlayerActivity",
+         "page_type":"player",
+         "app_category":"video_player",
+         "player":{
+            "control_bar_visible":true,
+            "is_playing":true,
+            "current_speed":"1.0",
+            "current_quality":"1080P",
+            "episode_panel_open":false
+         },
+         "summary":["暂停","选集","第3集","1080P","倍速"],
+         ...
+       }}
 """
 import json
 import sys
+import os
 
-from common.utils import (
-    success_with_data, error, dump, collect_texts, find_node_in_tree,
-)
+# 让本模块能找到 observation 包
+_HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+
+from common.utils import success_with_data, error       # noqa: E402
+from observation.state import resolve_state              # noqa: E402
 
 CMD_NAME = "get_state"
 
 
 def run(params=None):
-    """获取当前前台状态。
-
-    Args:
-        params: 可选 dict，当前无使用参数。
+    """获取当前前台状态（结构化版本）。
 
     Returns:
-        dict: {"ok": true, "data": {"command": "get_state", "pkg": "...", "summary": [...]}}
-              或 {"ok": false, "error": {"code": "...", "message": "..."}}
+        dict: success_with_data("get_state", StateSnapshot.to_dict())
+              或 error(...)
     """
-    # dump UI 树，取 pkg + 可见文本
-    r = dump(depth=4, include=["id", "text", "pkg"])
-    if not r.get("ok"):
-        return error("EXECUTION_FAILED", "dump failed")
+    try:
+        snapshot = resolve_state()
+    except Exception as e:
+        return error("RESOLVE_FAILED", f"resolve_state failed: {e}")
 
-    data = r.get("data", {})
-    window = data.get("window", {})
-    pkg = window.get("pkg", "")
+    data = snapshot.to_dict()
 
-    if not pkg:
-        return error("NO_MATCH", "no active window")
+    # 兜底：如果 pkg 完全为空，至少给个错误码让调用方知道
+    if not data.get("pkg"):
+        # 仍返回部分数据（summary 里可能有失败原因），但用 error 提示
+        # 这里选择返回 success + 警告，因为 Agent 仍能处理部分信息
+        data["warning"] = "pkg_empty: dump or ping may have failed"
 
-    # 收集可见文本（去重，最多 12 条）
-    texts = collect_texts(window)
-
-    return success_with_data(CMD_NAME, {"pkg": pkg, "summary": texts})
+    return success_with_data(CMD_NAME, data)
 
 
 if __name__ == "__main__":

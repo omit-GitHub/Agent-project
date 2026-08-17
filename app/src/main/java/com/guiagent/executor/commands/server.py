@@ -112,12 +112,16 @@ def register_all_commands():
     register("quark.go_back",              cmd_go_back.run)
     register("quark.search",               cmd_search.run)
 
-    # ── OCR (Dump + OCR 融合) ──
-    from ocr import cmd_observe_screen, cmd_click_element, cmd_reveal_controls
+    # ── Observation: screen commands (旧 ocr 子包，Phase 6 迁移) ──
+    from ocr import cmd_observe_screen, cmd_click_element
 
     register("observe_screen",             cmd_observe_screen.observe_screen)
     register("click_element",              cmd_click_element.click_element)
-    register("reveal_controls",            cmd_reveal_controls.reveal_controls)
+
+    # ── Observation: Control Revealer (新子系统) ──
+    from observation.reveal import revealer as reveal_module
+
+    register("reveal_controls",            reveal_module.run)
 
 
 # ─────────────────────── HTTP 处理器 ───────────────────────

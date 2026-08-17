@@ -32,6 +32,14 @@ from common.utils import (  # noqa: E402
     error as make_error,
 )
 
+# 导入 State Resolver（用于 _attach_state 输出富状态）
+# 注意：observation.state.resolver 依赖 send.py + common.utils，不会形成循环依赖
+try:
+    from observation.state import resolve_state as _resolve_state  # noqa: E402
+    _HAS_STATE_RESOLVER = True
+except ImportError:
+    _HAS_STATE_RESOLVER = False
+
 
 # ─────────────────────── 状态捕获 ───────────────────────
 
@@ -182,9 +190,12 @@ class CompoundRegistry:
         """命令执行后自动附加前台状态。
 
         对标 Java CompoundRegistry.attachState():
-        - 成功时: 等待 UI 稳定，附加 state 到 data.state
-        - 失败时: 立即采集一次，附加到顶层 state
-        - 任何异常静默吞掉
+        - 成功时: 等待 UI 稳定 → 调一次 resolve_state() 拿富状态，附加到 data.state
+        - 失败时: 立即调一次 resolve_state()，附加到顶层 state
+        - 任何异常静默吞掉（绝不能影响命令本身的响应）
+
+        注：await_stable 内部仍用轻量 capture_state（pkg+summary）轮询，
+        等稳定后才调一次富状态 resolve_state（ping+dump+classify+detect）。
         """
         try:
             if not isinstance(result, dict):
@@ -196,17 +207,38 @@ class CompoundRegistry:
                 if isinstance(data, dict):
                     # 如果 data 里已经有 summary 或 state，跳过
                     if "summary" not in data and "state" not in data:
-                        state = await_stable(baseline_pkg, self._state_cap_ms)
-                        if state:
-                            data["state"] = state
+                        # 等待 UI 稳定（轻量轮询）
+                        _legacy_state = await_stable(baseline_pkg, self._state_cap_ms)
+                        # 稳定后再取一次富状态
+                        rich_state = self._capture_rich_state()
+                        if rich_state:
+                            data["state"] = rich_state
+                        elif _legacy_state:
+                            # 兜底：富状态失败时用轻量状态
+                            data["state"] = _legacy_state
             else:
-                # 失败时：立即采集一次状态
-                state = capture_state()
-                if state:
-                    result["state"] = state
+                # 失败时：立即采集一次富状态
+                rich_state = self._capture_rich_state()
+                if rich_state:
+                    result["state"] = rich_state
+                else:
+                    legacy = capture_state()
+                    if legacy:
+                        result["state"] = legacy
         except Exception:
             # 静默吞掉，绝不影响命令本身的响应
             pass
+
+    @staticmethod
+    def _capture_rich_state():
+        """采集富状态（StateSnapshot.to_dict）。失败返回 None。"""
+        if not _HAS_STATE_RESOLVER:
+            return None
+        try:
+            snapshot = _resolve_state()
+            return snapshot.to_dict()
+        except Exception:
+            return None
 
     def shutdown(self):
         """关闭执行器。"""

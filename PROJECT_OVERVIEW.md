@@ -4,7 +4,9 @@
 > **仓库**：https://github.com/omit-GitHub/Agent-project
 > **目标设备**：华为 AZ102u-10 FTTR 中屏盒（RK3566，Android 9，armeabi-v7a）
 > **定位**：通过自然语言（文字或语音）控制客厅电视上的视频 App —— 爱奇艺、腾讯视频、夸克网盘等
-> **撰写日期**：2026-08-17
+> **首次撰写**：2026-08-17
+> **架构重构版**：2026-08-17（v2: 从 "Dump + OCR" 升级为 "状态驱动的观测与受控执行层"）
+> **重构进度**：Phase 0-2 已落地，Phase 3-8 见 [§九、重构进度跟踪](#九重构进度跟踪)
 
 ---
 
@@ -149,11 +151,11 @@ Agent 层是"大脑"，负责理解用户自然语言、决定调哪些设备命
 
 - **单线程执行器**：`ThreadPoolExecutor(max_workers=1)` 串行化所有命令，避免并发改 UI 状态
 - **15s 超时**：`future.result(timeout=15)`，超时返回 `TIMEOUT` 错误
-- **自动状态附加**：命令执行后自动 capture 当前前台 pkg + 可见文本，附到响应的 `data.state` 字段 —— 这样 Agent 不用单独再调 `get_state` 就知道操作后的状态
-- **状态捕获策略**：先采基线 pkg，执行完后每 300ms 采一次，最多 8s，满足下面任一条件就返回：
-  - 前台包名离开基线（App 切换）且连续两次采集相同
-  - 树发生过变化且已稳定
-  - 否则等到 cap
+- **自动状态附加**：命令执行后自动 capture 当前前台状态，附到响应的 `data.state` 字段 —— Agent 不用单独调 `get_state` 就知道操作后的状态
+- **状态捕获双层策略**（重构 v2 新增）：
+  - 轻量轮询：`await_stable()` 用 `capture_state()`（仅 pkg+summary）每 300ms 采一次，最多 8s，等 UI 稳定
+  - 富状态附加：稳定后调一次 `observation.state.resolve_state()`，把 `StateSnapshot.to_dict()` 作为 `data.state` —— 包含 `page_type`、`player.{control_bar_visible, is_playing, current_speed, ...}`、`overlay`、`focused_element` 等
+- **向后兼容**：`capture_state()` 仍保留（供 polling 用），但对外暴露的状态已从 `{pkg, summary}` 升级为结构化 `StateSnapshot`
 
 #### 2.2.3 命令模块
 
@@ -162,13 +164,13 @@ Agent 层是"大脑"，负责理解用户自然语言、决定调哪些设备命
 - `cmd_*.py`：单个原子命令（如 `cmd_toggle_play`）
 - `run_*.py`：业务流程（如 `run_episode` 包含 open/select/scroll/next/prev 一组）
 
-| 子模块 | 命令数 | 关键命令 |
-|---|---|---|
-| `common/` | 8 | `get_state`、`go_back`、`go_home`、`volume_up/down/mute`、`launcher_search`、`play` |
-| `aiqiyi/` | 15 | `toggle_play`、`next/prev_episode`、`select_episode`、`set_speed`、`set_quality`、`brightness_up/down`、`toggle_control_bar`、`open/close_detail`、`open/close_episode_panel`、`scroll_episode_up/down` |
-| `Tencent/` | 13 | 与爱奇艺基本对称，加上 `open_detail` |
-| `quark/` | 7 | `launch_app`、`click_navigation`、`scroll_up/down`、`select_file`、`go_back`、`search` |
-| `ocr/` | 3 | `observe_screen`、`click_element`、`reveal_controls` |
+| 子模块 | 命令数 | 关键命令 | 状态 |
+|---|---|---|---|
+| `common/` | 8 | `get_state`、`go_back`、`go_home`、`volume_up/down/mute`、`launcher_search`、`play` | `get_state` v2 重写 |
+| `aiqiyi/` | 15 | `toggle_play`、`next/prev_episode`、`select_episode`、`set_speed`、`set_quality`、`brightness_up/down`、`toggle_control_bar`、`open/close_detail`、`open/close_episode_panel`、`scroll_episode_up/down` | v2 待重构 |
+| `Tencent/` | 13 | 与爱奇艺基本对称 | v2 待重构 |
+| `quark/` | 7 | `launch_app`、`click_navigation`、`scroll_up/down`、`select_file`、`go_back`、`search` | 不动 |
+| `observation/` | 4 | `observe_screen`、`click_element`、`reveal_controls` (v2 新)、`resolve_state` (v2 新) | **v2 新子系统** |
 
 #### 2.2.4 `common/utils.py` — 共享工具
 
@@ -235,44 +237,186 @@ Python 实现的 WebSocket 客户端（无第三方依赖，纯 stdlib）：
 - `WsFrame.java` / `WsHandshake.java` — WS 帧/握手
 - `Err.java` — 错误码封装
 
-### 2.4 OCR 子系统（Dump + OCR 融合）
+### 2.4 多模态 UI 观测与状态化执行层（`commands/observation/`，v2 新增）
 
-这是项目的**下一代控制基础能力**，目标是把"硬编码坐标 + App 专属命令"升级为通用的 GUI Agent 能力。
+> **v2 重构核心**：原 `commands/ocr/` 整体升级为 `commands/observation/`。
+> 不再以 OCR 为中心，而是提供 4 个协同能力：**状态识别 / 控件唤出 / 焦点导航 / 动作验证**。
 
-#### 2.4.1 设计哲学
+#### 2.4.1 设计哲学（v2 重写）
 
-不是"用 OCR 替代 dump"，而是让两者承担不同职责：
+**核心认知**：播放器控制按钮在未唤出时根本不在可观测界面中 —— 没有文字、没有像素、通常也没有无障碍节点。**任何 OCR / 视觉检测都无法定位一个尚未显示的控件。**
 
-| 信息 | Dump/UI 节点 | OCR |
+所以项目的控制基座从"看见按钮再点"升级为：
+
+> **状态驱动的操作策略 + 控件显式唤出 + DPAD 焦点控制 + 操作后验证。**
+
+按可观测性把页面分三类：
+
+| 页面类型 | 典型例子 | 主控制方式 |
 |---|---|---|
-| 文本语义 | 可能缺失、截断或错误 | 可从截图补全可见文字 |
-| 可点击性 | 可提供 clickable、层级和父节点 | 无法证明文字本身可点击 |
-| 点击区域 | 可提供真实 bounds | 仅能提供文字框位置 |
-| dump 失效时 | 不可用或局部可用 | 仍能定位可见文字 |
+| **结构化页面** | 搜索、详情、选集、列表、launcher、文件浏览器 | UI dump 节点优先；OCR 只补文本 |
+| **视觉可见但无节点页面** | 自绘/WebView 列表、海报卡片 | 截图语义定位 + 坐标点击 + 截图验证 |
+| **隐藏/瞬态控件页面** | 播放器控制条、倍速/清晰度浮层 | `reveal_controls` / DPAD 唤出焦点，再用相对导航或专属动作执行 |
 
-**核心结论**：OCR 用于"找到用户要的文字"，dump 用于"恢复这段文字所属的真实可点击容器"。当两者都可用时优先点 UI 节点 bounds；当 dump 在该区域失效时才降级为 OCR 文本框中心。
+**OCR 的新定位**：OCR 不承担隐藏控件定位，也不单独作为点击依据。系统先通过状态识别判断控件是否应当存在；对播放器等瞬态界面，先执行控件唤出与焦点建立，再采用节点、DPAD 相对导航或视觉坐标完成操作。OCR 仅用于**补全可见文字、辅助候选匹配和验证操作结果**。
 
-#### 2.4.2 设备端 OCR 命令（`commands/ocr/`）
+#### 2.4.2 `observation/` 子系统结构
 
-- `cmd_observe_screen.py`：纯观察。流程：
-  1. 获取包名/Activity/屏幕尺寸
-  2. 截图并计算哈希
-  3. dump UI 树并计算哈希
-  4. 组合 `screen_version = pkg:activity:shotHash:treeHash`
-  5. 提取可操作候选容器（clickable 祖先）
-  6. 对截图运行 OCR
-  7. 融合两者返回统一元素列表（每个元素含 element_id、label、action_point、source、click_confidence）
-- `cmd_click_element.py`：点击已观察元素。必须提供 element_id + screen_version，校验不匹配则拒绝
-- `cmd_reveal_controls.py`：唤出播放器隐藏的控制条
-- `observation_cache.py`：观察缓存（只保留最近一次，30s TTL，任何动作后失效）
+```
+commands/observation/
+├── __init__.py               # 顶层暴露 resolve_state, reveal_controls 等
+│
+├── state/                    # ★ Phase 0 ✅ UI State Resolver
+│   ├── schema.py             #   StateSnapshot + PlayerState 数据类
+│   ├── page_classifier.py    #   基于 pkg+activity 快速路径 + UI 树启发式
+│   ├── player_state.py       #   控制条/播放状态/倍速/清晰度/选集面板检测
+│   └── resolver.py           #   resolve_state() 主入口（ping → dump → classify → detect）
+│
+├── reveal/                   # ★ Phase 2 ✅ Control Revealer
+│   ├── strategies.py         #   per-App 优先级动作序列（数据驱动）
+│   ├── detectors.py          #   三级控制条检测（容器 ID / 按钮 ID / OCR 文字）
+│   └── revealer.py           #   reveal_controls() 主入口
+│
+├── dpad/                     # ○ Phase 3（计划中）Focus-Aware DPAD Executor
+│   ├── executor.py           #   dpad_press / dpad_navigate / focus_element / dpad_confirm
+│   ├── focus_tracker.py      #   a11y 树 diff 检测焦点移动
+│   └── keymaps.py            #   per-App DPAD 键位映射 + 导航图
+│
+├── verify/                   # ○ Phase 4（计划中）Action Verification + Recovery
+│   ├── verifier.py           #   verify(predicate, timeout, retries)
+│   ├── predicates.py         #   8 个内置谓词（bar_visible, playing_changed, ...）
+│   └── recovery.py           #   恢复策略（re-reveal / retry / fail）
+│
+├── screen/                   # ○ Phase 6（计划中）从 ocr/ 迁移过来
+│   ├── cmd_observe_screen.py #   原 ocr/cmd_observe_screen.py
+│   └── cmd_click_element.py  #   原 ocr/cmd_click_element.py
+│
+├── ocr/                      # ○ Phase 6（计划中）OCR 引擎降为子模块
+│   └── ocr_engine.py         #   从 cmd_observe_screen.py 抽出
+│
+└── tests/                    # 单元测试
+    └── test_state_resolver.py  # 35 个单测，全通过 ✅
+```
 
-#### 2.4.3 概念验证管线（根目录 `ocr/`）
+#### 2.4.3 UI State Resolver（Phase 0 ✅）
 
-- `ocr_pipeline.py`：截图 → OCR → 结构化 UI 描述的概念验证
-- 用 `rapidocr_onnxruntime` 做 OCR
-- 启发式分类 UI 元素（按位置和大小判断是状态栏、导航、按钮、标题等）
-- 后续计划用 YOLO 替换启发式分类
-- 附若干测试截图（`quark_*.png`、`screenshot*.png`）和 UI dump（`quark_ready_ui.json`）
+**文件**：`observation/state/resolver.py`
+**入口**：`resolve_state() → StateSnapshot`
+**职责**：采集当前设备状态并返回结构化快照。
+
+**StateSnapshot 关键字段**（详见 `schema.py`）：
+
+```python
+StateSnapshot:
+  pkg, activity, summary              # 兼容旧 schema
+  screen_version                       # 与 observe_screen 同格式
+  page_type                            # structured | visual | player | unknown
+  app_category                         # video_player | file_browser | launcher | ...
+  player: Optional[PlayerState]        # 播放器子状态（非播放器场景为 None）
+    .control_bar_visible               # ★ 关键字段：决定要不要先 reveal_controls
+    .is_playing, current_speed, current_quality
+    .episode_panel_open, focused_element_id
+  overlay                              # speed_panel | quality_panel | episode_panel | ...
+  focused_element, dump_status, screen_size
+```
+
+**Page Type 分类**（`page_classifier.py`）：
+- **快速路径**：pkg+activity 查表（我们只对接 3 个 App + launcher，查表吊打 ML 分类器）
+- **兜底**：UI 树启发式（节点 ID 含 `playerControlBar` / `episodeGridView` 等 → player）
+
+**接入点**（`registry.py` / `cmd_get_state.py`）：
+- Seam 1（已实现）：`registry._attach_state()` 在 `await_stable` 后调一次 `resolve_state()`，富状态自动附到每个命令响应的 `data.state`
+- Seam 2（已实现）：`common/cmd_get_state.py` 重写为调 `resolve_state()`，命令名不变、schema 扩展
+
+#### 2.4.4 Control Revealer（Phase 2 ✅）
+
+**文件**：`observation/reveal/revealer.py` + `strategies.py` + `detectors.py`
+**入口**：`reveal_controls(app=None, context=None, max_steps=4) → dict`
+**替代**：旧 `ocr/cmd_reveal_controls.py`（硬编码 `tap(640, 400)`，无 per-App 特化，无验证）—— **已删除**。
+
+**工作流**：
+
+```mermaid
+flowchart TD
+    A[收到唤出请求] --> B{控制条已可见?}
+    B -->|是| C[立即返回 revealed=true, method=already_visible]
+    B -->|否| D[取 per-App 策略列表]
+    D --> E[执行第 1 步动作: tap / remote_key / swipe]
+    E --> F[等待 wait_ms 动画]
+    F --> G{三级检测控制条}
+    G -->|高: 容器 ID 命中| H[返回 revealed=true, method=step_N]
+    G -->|中: 按钮 ID 命中| H
+    G -->|低: OCR 文字命中| H
+    G -->|都没命中| I{还有下一步?}
+    I -->|是| E
+    I -->|否| J[返回 revealed=false, method=all_failed]
+```
+
+**Per-App 策略示例**（`strategies.py`）：
+
+```python
+AIQIYI_STRATEGY = [
+    {"action": "tap", "args": {"x": 640, "y": 200}, "wait_ms": 1200},  # 顶部中央
+    {"action": "remote_key", "args": {"key": "ENTER"}, "wait_ms": 1000},
+    {"action": "remote_key", "args": {"key": "MENU"}, "wait_ms": 1200},
+]
+```
+
+**三级检测**（`detectors.py`）：
+- 高置信度：a11y 树含控制条容器节点（`playerControlBar` 等）
+- 中置信度：a11y 树含典型按钮 ID（`btn_pause`, `im_play_next` 等）
+- 低置信度：OCR 找到控制文字（暂停/选集/倍速等），且 ≥2 个匹配
+
+#### 2.4.5 DPAD Executor（Phase 3 — 计划中）
+
+**目标**：对播放器设置、选集、清晰度等浮层，优先使用"从已知初始焦点按 N 次方向键"的相对导航，而不是绝对坐标。
+
+**4 级 API**：
+1. `dpad_press(key)` — 单次按键 + 焦点追踪
+2. `dpad_navigate(direction, count)` — 多次连续导航
+3. `focus_element(target_id/target_text)` — 目标导向导航
+4. `dpad_confirm()` — 在当前焦点元素上按 DPAD ENTER
+
+**焦点追踪**：通过 `focused=true` 属性在 a11y 树里的位置变化判断。
+
+#### 2.4.6 Action Verification（Phase 4 — 计划中）
+
+**目标**：每个高层操作必须有成功判定，而不只是"tap 调用了且未报错"。
+
+**8 个内置谓词**：
+- `bar_visible(app)` — 控制条出现
+- `playing_state_changed(expected)` — 播放/暂停状态翻转
+- `episode_changed(expected_ep)` — 集数变化
+- `speed_changed(expected)` / `quality_changed(expected)` — 倍速/清晰度变化
+- `overlay_appeared(type)` — 浮层出现
+- `node_present(id_substr)` / `text_present(text_substr)` — 通用存在性
+
+**verify_after_action(action_fn, predicate, recover_fn, max_retries=1)**：
+自动走"执行 → 验证 → 失败则 recover → 重试一次"流程。命令层内部消化，Agent 只看最终 `verification.verified`。
+
+#### 2.4.7 Harness 在 v2 中的新角色（关键架构变化）
+
+**Harness 定义**：LLM（大脑）和设备命令（手脚）之间的机械编排层。
+
+**当前三层 harness 分布**：
+- Agent 侧：`agent/agent.py` 的 `_chat_loop()` + `_execute_command()`（工具循环 + 5 次预算）
+- Registry 侧：`CompoundRegistry`（单线程 + 15s 超时 + 状态 attach）
+- 命令侧：`common/utils.py`（响应格式 + WS 封装 + UI 树工具）
+
+**v2 新增的 harness 职责**：
+
+| 职责 | 当前 | v2 |
+|---|---|---|
+| 前置条件检查 | 仅搜索关键词归一化 | 调 State Resolver 判断 state → 决定能不能执行 |
+| 控制唤出 | 没有（每个命令盲 tap） | 统一 Control Revealer，带 per-App 优先级动作序列 |
+| 焦点导航 | 几乎没有 | DPAD Executor 抽象 |
+| 后置验证 | 没有 | 每个命令带验证谓词；失败自动重观察→重唤出→重试 |
+
+**关键的"机械重试 vs 语义重试"分工**：
+- **Harness 负责机械重试**（deterministic, bounded）：控制条没唤出 → 换下一个动作；DPAD 失焦 → 再按一次
+- **LLM 负责语义重试**（needs reasoning）：走错页面 → 决定按几次返回；目标不存在 → 决定换候选；多次机械重试都失败 → 决定放弃并解释
+
+这让 LLM 不再需要推理"控制条怎么唤出"这种机械逻辑，显著省 token、提高可靠性。
 
 ### 2.5 华为语音数字人 Shell（`app/src/main/java/com/huawei/aifttr/digitalpersonshell/`）
 
@@ -363,19 +507,23 @@ digitalpersonshell/
 |---|---|
 | `README.md` | 编译部署手册（Mac 本机编译 + 设备扫描 + adb 安装 + 启动） |
 | `agent/README.md` | Agent 框架使用说明（快速开始、使用示例、配置项、架构图） |
-| `Dump+OCR实现说明.md` | v2.1 版本 Dump+OCR 实现细节 |
-| `增强Dump+OCR融合方案.md` | 增强方案设计文档（含 mermaid 流程图） |
+| `PROJECT_OVERVIEW.md` | **本文件** — 项目全景描述（v2 重构版） |
+| `Dump+OCR实现说明.md` | v2.1 版本 Dump+OCR 实现细节（**v1 历史文档**） |
+| `增强Dump+OCR融合方案.md` | 增强方案设计文档（含 mermaid 流程图，**v1 历史文档**） |
 | `http_service_guide.md` | HTTP 服务指南 |
 | `run-search.py` | 顶层演示脚本：搜索片源（走 whohuatv launcher） |
 | `generate_project_summary_pdf.py` | 项目摘要 PDF 生成脚本 |
 | `Tencent/readme_tencent.md` | 腾讯视频适配说明 |
 | `aiqiyi/readme_aiqiyi.md` + `run-episode.py` | 爱奇艺适配说明 + 选集演示 |
 
+**v2 重构方案**（本地 plan 文件，未提交到仓库）：
+- `~/.claude/plans/concurrent-snuggling-ritchie.md` — 完整重构设计（~1000 行），含 harness 架构、4 个新能力设计、迁移策略、文件清单
+
 ---
 
 ## 三、模块间关系与数据流
 
-### 3.1 主链路（用户说话到视频响应）
+### 3.1 主链路（用户说话到视频响应，v2 更新）
 
 ```
 1. 用户输入 (文字 / 语音)
@@ -400,42 +548,62 @@ digitalpersonshell/
 5. [commands/registry.py] CompoundRegistry.execute()
    - 单线程执行器提交 handler
    - 15s 超时保护
-   - 执行后 await_stable() 等待 UI 稳定
-   - 附加 state 到响应
       │
       ▼
-6. [commands/aiqiyi/run_toggle.py] run(params)
-   - 调 common/utils.py 的 ws 封装函数
-   - 例如 tap()、swipe()、click_node_by_id()
+6. [commands/aiqiyi/run_toggle.py] run(params)   ← v2 新流程
+   - a. resolve_state() 检查 page_type == 'player'
+   - b. 若 control_bar 不可见 → reveal_controls(app) 唤出
+   - c. 执行核心动作（click_node / dpad_navigate）
+   - d. verify_after_action() 验证结果
       │
       ▼
-7. [commands/send.py] send(req)
-   - 纯 Python WebSocket 客户端
-   - 发到 ws://127.0.0.1:8322/guiagent
+7. [observation/state/resolver.py] resolve_state()
+   - ping → dump → classify → detect_player → assemble StateSnapshot
       │
       ▼
-8. [Java] WsCommandServer :8322
-   - 收到文本帧 → LineHandler → Protocol.handle()
+8. [observation/reveal/revealer.py] reveal_controls()
+   - 取 per-App 策略 → 依次执行动作 → 三级检测控制条是否出现
       │
       ▼
-9. [Java] Protocol.java 分发
-   - 根据 op 字段调用对应 Android 无障碍 API
-   - 例如 op=tap → svc.dispatchGesture(tap x,y)
+9. [observation/verify/verifier.py] verify_after_action()
+   - 执行 action → 验证谓词（bar_visible / playing_changed / ...）
+   - 失败 → recover + 重试一次 → 返回 verification 结果
       │
       ▼
-10. Android 系统执行
+10. [commands/send.py] send(req)
+    - 纯 Python WebSocket 客户端
+    - 发到 ws://127.0.0.1:8322/guiagent
+      │
+      ▼
+11. [Java] WsCommandServer :8322
+    - 收到文本帧 → LineHandler → Protocol.handle()
+      │
+      ▼
+12. [Java] Protocol.java 分发
+    - 根据 op 字段调用对应 Android 无障碍 API
+    - 例如 op=tap → svc.dispatchGesture(tap x,y)
+      │
+      ▼
+13. Android 系统执行
     - AccessibilityService 注入点击/滑动/文本
     - 视频 App 响应（暂停、换集、跳进度等）
       │
       ▼
-11. 响应原路返回
+14. 响应原路返回
     - Protocol → WsFrame → send.py → utils → run_*.py
-    - registry 附加 state → server.py → HTTP 响应
-    - agent.py 拿到结果 → 让 Qwen 生成自然语言回复
+    - registry 调 resolve_state() 获取富状态，附到 data.state
+    - server.py → HTTP 响应
+    - agent.py 拿到结果（含 verification.verified + state）
+      → 让 Qwen 生成自然语言回复
       │
       ▼
-12. 用户看到回复 (CLI / Web / 语音 TTS)
+15. 用户看到回复 (CLI / Web / 语音 TTS)
 ```
+
+**v2 vs v1 主链路关键差异**：
+- v1 步骤 6 只做"盲 tap + sleep"，无状态检查、无唤出、无验证
+- v2 步骤 6 内部分解为 **resolve → reveal → act → verify** 四步，harness 自动处理机械细节
+- v2 步骤 14 返回富状态 `StateSnapshot`（含 page_type, player state 等），Agent 看到完整场景信息
 
 ### 3.2 调用方向矩阵
 
@@ -512,11 +680,18 @@ Java 侧**只保留 WS 原子操作**（:8322），因为这部分必须调 Andr
 
 UI 操作天然是串行的 —— 同时 tap 两个地方没意义，反而可能让 UI 进入不确定状态。`max_workers=1` 的执行器保证命令一个接一个执行，配合 `await_stable()` 等待 UI 稳定再返回，让 Agent 永远看到一致的状态。
 
-### 5.4 为什么 Dump + OCR 而不是二选一
+### 5.4 为什么从 Dump + OCR 升级为状态驱动的观测与受控执行层（v2 重写）
 
-- 单用 dump：自绘页面、WebView、播放器浮层拿不到节点
-- 单用 OCR：不知道文字是否可点击、真实点击区域在哪
-- 融合：OCR 找文字，dump 找可点击容器，互为补充
+**旧方案的逻辑漏洞**：原 §2.4.1 的"dump 失效时才降级为 OCR 文本框中心点击"策略对普通列表页尚可，但对播放器页是错的 —— OCR 框中心不是按钮真实热区；隐藏控制栏没有 OCR 结果，更谈不上点击。
+
+**核心认知升级**：播放器控制按钮在未唤出时根本不在可观测界面中。任何 OCR / 视觉检测都无法定位一个尚未显示的控件。所以控制基座必须从"看见按钮再点"升级为"状态驱动 + 显式唤出 + 焦点导航 + 动作验证"。
+
+**新框架**：
+- **状态识别**：`resolve_state()` 给出结构化状态，Agent 决策单位从"截图中有哪些字"升级为"当前处于什么状态"
+- **显式唤出**：`reveal_controls()` 用 per-App 策略序列 + 三级检测，把隐藏控件唤出来
+- **DPAD 焦点**：对播放器浮层优先用"从已知焦点按 N 次方向键"，而不是绝对坐标
+- **动作验证**：每个操作带验证谓词，失败自动恢复
+- **Harness 增强**：harness 承担机械性责任（precondition / reveal / retry），LLM 专注于语义决策
 
 ### 5.5 为什么语音子系统和 Agent 子系统并行存在
 
@@ -662,6 +837,75 @@ flowchart TB
 
 ---
 
+## 九、重构进度跟踪（v2）
+
+> 完整设计方案：`C:\Users\p30068177\.claude\plans\concurrent-snuggling-ritchie.md`
+> 重构目标：从 "Dump + OCR" 升级为 "状态驱动的观测与受控执行层"
+
+### Phase 状态总览
+
+| Phase | 标题 | 状态 | 关键产出 |
+|---|---|---|---|
+| **0** | Foundation — State Resolver | ✅ 完成 | `observation/state/{schema, page_classifier, player_state, resolver}.py` + 35 个单测全通过 |
+| **1** | State Resolver 集成 | ✅ 完成 | `registry.py._attach_state()` 改用 `resolve_state()`；`cmd_get_state.py` 重写返回富状态；真实设备验证通过 |
+| **2** | Control Revealer | ✅ 完成 | `observation/reveal/{strategies, detectors, revealer}.py`；per-App 策略 + 三级检测；删旧 `ocr/cmd_reveal_controls.py`；server.py 注册新 `reveal_controls` |
+| **3** | Focus-Aware DPAD Executor | ○ 计划中 | `observation/dpad/{executor, focus_tracker, keymaps}.py` |
+| **4** | Verification Framework | ○ 计划中 | `observation/verify/{verifier, predicates, recovery}.py` + 8 个内置谓词 |
+| **5** | 重构现有播放器命令 | ○ 计划中 | aiqiyi + Tencent 的 run_toggle/run_speed/run_resolution/cmd_toggle_control_bar 用新的 reveal→verify→dpad→verify 模式重写 |
+| **6+7** | 重命名 ocr/ → observation/ + Agent 层更新 | ○ 计划中 | 移动 `ocr/*` 到 `observation/screen/` + `observation/ocr/`；SYSTEM_PROMPT 重写教三类页面模型；MAX_TOOL_CALLS 5→8 |
+| **8** | 文档更新 | 🔄 进行中 | 本文件 PROJECT_OVERVIEW.md 已更新 §2.4 / §3.1 / §5.4 / 新增 §9 |
+
+### Phase 0-2 关键成果
+
+**Phase 0 — State Resolver**（新增文件 6 个，单测 35 个）
+
+```
+observation/
+├── __init__.py
+├── state/
+│   ├── __init__.py
+│   ├── schema.py             # StateSnapshot + PlayerState 数据类
+│   ├── page_classifier.py    # pkg+activity 查表 + UI 树启发式
+│   ├── player_state.py       # 控制条/播放状态/倍速/清晰度/选集面板检测
+│   └── resolver.py           # resolve_state() 主入口
+└── tests/
+    └── test_state_resolver.py
+```
+
+**Phase 1 — 集成**（改动 2 个文件）
+
+- `registry.py`：`_attach_state()` 现在稳定后调一次 `resolve_state()` 附富状态
+- `common/cmd_get_state.py`：重写为调 `resolve_state()`，返回 ~12 字段增强 schema
+- **真实设备验证**：`get_state` 成功返回 `page_type: "structured"`, `app_category: "launcher"` 等正确分类
+
+**Phase 2 — Control Revealer**（新增 4 文件，删 1 文件，改 1 文件）
+
+```
+observation/reveal/
+├── __init__.py
+├── strategies.py       # AIQIYI/TENCENT/QUARK/DEFAULT 策略列表
+├── detectors.py        # 三级检测（容器 ID / 按钮 ID / OCR 文字）
+└── revealer.py         # reveal_controls() 主入口
+
+已删除: ocr/cmd_reveal_controls.py
+已修改: server.py（注册新 reveal_controls 替代旧）
+```
+
+**端到端验证**（Phase 2 完成后）：
+- Server 注册 47 个命令，`reveal_controls` / `observe_screen` / `click_element` 全部正确注册
+- Detector 测试：`high/container_id`、`medium/button_id`、`none` 三级都按预期工作
+- 策略查找：3 个 App 各 3 步策略，未知 App 自动 fallback 到 default
+
+### 下一步工作
+
+- **Phase 3**: 实现 `observation/dpad/`（DPAD Executor + 焦点追踪）
+- **Phase 4**: 实现 `observation/verify/`（Verifier + 8 个谓词 + Recovery）
+- **Phase 5**: 用新原语重写 aiqiyi + Tencent 的 8 个播放器命令
+- **Phase 6+7**: 重命名 + SYSTEM_PROMPT 重写
+- **Phase 8**: 完成本文件剩余部分（§7 Mermaid 图重绘）
+
+---
+
 **文档结束**
 
-本文件是 GUIAgent 项目的完整逐字描述，覆盖所有模块的职责、接口、数据流和设计决策。配合 `README.md`（编译部署）、`agent/README.md`（Agent 使用）、`Dump+OCR*.md`（方案细节）一起阅读，可完整理解整个项目。
+本文件是 GUIAgent 项目的完整逐字描述，覆盖所有模块的职责、接口、数据流和设计决策。**v2 架构重构**正在推进中（Phase 0-2 已落地，Phase 3-8 见本章状态表）。配合 `README.md`（编译部署）、`agent/README.md`（Agent 使用）、完整重构方案 `~/.claude/plans/concurrent-snuggling-ritchie.md` 一起阅读，可完整理解整个项目。
