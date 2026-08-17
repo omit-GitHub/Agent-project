@@ -112,8 +112,18 @@ def register_all_commands():
     register("quark.go_back",              cmd_go_back.run)
     register("quark.search",               cmd_search.run)
 
-    # ── Observation: screen commands (旧 ocr 子包，Phase 6 迁移) ──
-    from ocr import cmd_observe_screen, cmd_click_element
+    # ── Observation: 状态识别 (Phase 0) ──
+    from observation.state import resolver as state_resolver
+
+    def _resolve_state_cmd(params=None):
+        from common.utils import success_with_data
+        snapshot = state_resolver.resolve_state()
+        return success_with_data("resolve_state", snapshot.to_dict())
+
+    register("resolve_state",              _resolve_state_cmd)
+
+    # ── Observation: screen commands (从 ocr/ 迁移到 observation/screen/) ──
+    from observation.screen import cmd_observe_screen, cmd_click_element
 
     register("observe_screen",             cmd_observe_screen.observe_screen)
     register("click_element",              cmd_click_element.click_element)

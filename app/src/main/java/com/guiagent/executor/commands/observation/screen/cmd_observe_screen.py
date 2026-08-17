@@ -37,7 +37,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from send import send
 from common.utils import success_with_data, error
-from ocr.observation_cache import update_observation
+from observation.observation_cache import update_observation
 
 
 # ─────────────────────── 屏幕信息采集 ───────────────────────

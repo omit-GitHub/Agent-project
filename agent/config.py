@@ -53,7 +53,8 @@ DEVICE_URL = f"http://{DEVICE_IP}:{DEVICE_PORT}"
 # ─────────────── Agent 行为 ───────────────
 
 # 最大连续 function call 次数（防止死循环）
-MAX_TOOL_CALLS_PER_TURN = int(os.environ.get("MAX_TOOL_CALLS", "5"))
+# v2: 5 → 8。observe-reveal-act-verify 链需要 4-6 次调用，8 给 recovery 留余量
+MAX_TOOL_CALLS_PER_TURN = int(os.environ.get("MAX_TOOL_CALLS", "8"))
 
 # 对话历史最大轮数（超过后截断旧消息）
 MAX_HISTORY_TURNS = int(os.environ.get("MAX_HISTORY_TURNS", "20"))

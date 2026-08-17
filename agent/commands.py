@@ -252,9 +252,21 @@ COMMAND_DOCS = {
         "examples": ["搜索电影"],
     },
 
-    # ── OCR（Dump + OCR 融合）──
+    # ── Observation 子系统（v2: 多模态 UI 观测与状态化执行层）──
+
+    # 状态识别 (Phase 0)
+    "resolve_state": {
+        "desc": "获取设备增强状态。返回页面类型（structured/visual/player）、"
+                "播放器状态（控制条是否可见、是否播放中、当前倍速/清晰度）、"
+                "浮层类型、焦点元素等。Agent 决策单位应是'当前处于什么状态'，"
+                "而非'截图中有哪些字'。",
+        "params": {},
+        "examples": ["现在什么状态", "控制条显示了吗", "在播放吗"],
+    },
+
+    # 屏幕观察 (原有，归入 observation/screen)
     "observe_screen": {
-        "desc": "观察当前屏幕，返回所有可见元素（包括隐藏控件）。每个元素有 element_id、label（文本）、action_point（点击坐标）。同时返回 screen_version 用于后续校验。",
+        "desc": "观察当前屏幕，返回所有可见元素（包括隐藏控件）。每个元素有 element_id、label（文本）、action_point（点击坐标）。同时返回 screen_version 用于后续校验。适用于结构化页面和视觉页面。",
         "params": {},
         "examples": ["看看屏幕有什么", "当前页面有哪些按钮"],
     },
@@ -266,10 +278,50 @@ COMMAND_DOCS = {
         },
         "examples": ["点击暂停按钮", "选择第3集"],
     },
+
+    # 控件唤出 (Phase 2)
     "reveal_controls": {
-        "desc": "唤出播放器隐藏的控制条。仅在播放器页面且控件缺失时调用。调用后需再次 observe_screen 验证。",
+        "desc": "显式唤出播放器隐藏控件（控制条）。播放器页面的控制按钮默认隐藏，"
+                "必须调用此命令才能看到。按 per-App 策略依次尝试 tap/DPAD/MENU，"
+                "每步后检测控制条是否出现。返回 steps_tried 和 detection 信息。",
+        "params": {
+            "app": "可选: aiqiyi | tencent | quark（默认从当前 pkg 自动检测）",
+        },
+        "examples": ["唤出控制条", "显示播放控件"],
+    },
+
+    # DPAD 导航 (Phase 3)
+    "dpad_press": {
+        "desc": "按一次 DPAD 键（UP/DOWN/LEFT/RIGHT/ENTER/BACK/MENU），可选追踪焦点变化。",
+        "params": {
+            "key": "按键名: UP | DOWN | LEFT | RIGHT | ENTER | BACK | MENU",
+        },
+        "examples": ["按上", "按确认", "按返回"],
+    },
+    "dpad_navigate": {
+        "desc": "连续按 N 次方向键。在播放器控制条或面板中移动焦点。"
+                "比坐标点击更稳定，不受布局变化影响。支持中英文方向名。",
+        "params": {
+            "direction": "方向: UP | DOWN | LEFT | RIGHT（或 上/下/左/右）",
+            "count": "按几次（默认 1）",
+        },
+        "examples": ["向右", "往下按3次", "DPAD左"],
+    },
+    "dpad_confirm": {
+        "desc": "在当前焦点元素上按 DPAD ENTER（确认键）。"
+                "配合 dpad_navigate 使用：先导航到目标，再确认选择。",
         "params": {},
-        "examples": ["显示控制条", "唤出播放控件"],
+        "examples": ["确认", "选择当前项", "按下"],
+    },
+    "focus_element": {
+        "desc": "目标导向 DPAD 导航。通过 DPAD 把焦点移到目标元素（按 id 或 text 匹配）。"
+                "自动尝试 4 个方向，返回找到的路径。",
+        "params": {
+            "target_id": "目标元素的 resource-id 子串",
+            "target_text": "目标元素的文字子串",
+            "max_presses": "单方向最大按键次数（默认 10）",
+        },
+        "examples": ["聚焦到暂停按钮", "找到 1.5x"],
     },
 }
 

@@ -13,8 +13,8 @@
 """
 
 # 顶层能力入口（详细实现在子包）
-# 当前已实现：state (Phase 0) + reveal (Phase 2) + dpad (Phase 3) + verify (Phase 4)
-# 后续：screen (Phase 6) + ocr (Phase 6)
+# 4 个核心能力：state (Phase 0) + reveal (Phase 2) + dpad (Phase 3) + verify (Phase 4)
+# 辅助：screen (observe/click，从原 ocr/ 迁移) + observation_cache
 
 from .state import (
     resolve_state,
@@ -59,6 +59,10 @@ from .verify import (
     noop,
     chain,
 )
+# screen 子模块（observe/click）懒加载以避免启动时跑 OCR import
+# 用 `from observation.screen import observe_screen` 直接导入也可以
+from . import screen
+from . import observation_cache
 
 __all__ = [
     # State Resolver
@@ -98,4 +102,7 @@ __all__ = [
     "wait_and_retry",
     "noop",
     "chain",
+    # Screen observation (from old ocr/)
+    "screen",
+    "observation_cache",
 ]

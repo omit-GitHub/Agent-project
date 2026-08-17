@@ -849,11 +849,11 @@ flowchart TB
 | **0** | Foundation — State Resolver | ✅ 完成 | `observation/state/{schema, page_classifier, player_state, resolver}.py` + 35 个单测全通过 |
 | **1** | State Resolver 集成 | ✅ 完成 | `registry.py._attach_state()` 改用 `resolve_state()`；`cmd_get_state.py` 重写返回富状态；真实设备验证通过 |
 | **2** | Control Revealer | ✅ 完成 | `observation/reveal/{strategies, detectors, revealer}.py`；per-App 策略 + 三级检测；删旧 `ocr/cmd_reveal_controls.py`；server.py 注册新 `reveal_controls` |
-| **3** | Focus-Aware DPAD Executor | ○ 计划中 | `observation/dpad/{executor, focus_tracker, keymaps}.py` |
-| **4** | Verification Framework | ○ 计划中 | `observation/verify/{verifier, predicates, recovery}.py` + 8 个内置谓词 |
-| **5** | 重构现有播放器命令 | ○ 计划中 | aiqiyi + Tencent 的 run_toggle/run_speed/run_resolution/cmd_toggle_control_bar 用新的 reveal→verify→dpad→verify 模式重写 |
-| **6+7** | 重命名 ocr/ → observation/ + Agent 层更新 | ○ 计划中 | 移动 `ocr/*` 到 `observation/screen/` + `observation/ocr/`；SYSTEM_PROMPT 重写教三类页面模型；MAX_TOOL_CALLS 5→8 |
-| **8** | 文档更新 | 🔄 进行中 | 本文件 PROJECT_OVERVIEW.md 已更新 §2.4 / §3.1 / §5.4 / 新增 §9 |
+| **3** | Focus-Aware DPAD Executor | ✅ 完成 | `observation/dpad/{executor, focus_tracker, keymaps}.py`；4 级 API + 22 单测 |
+| **4** | Verification Framework | ✅ 完成 | `observation/verify/{verifier, predicates, recovery}.py`；8 谓词 + 5 恢复策略 + 29 单测 |
+| **5** | 重构现有播放器命令 | ✅ 完成 | `aiqiyi/_shared.py` + `Tencent/_shared.py`；8 个命令全部用 `reveal → verify → click/dpad → verify` 模式重写 |
+| **6+7** | 重命名 ocr/ → observation/ + Agent 层更新 | ✅ 完成 | `ocr/` 删除 → `observation/screen/`；SYSTEM_PROMPT 重写（3 类页面 + 状态感知 + 验证工作流）；MAX_TOOL_CALLS 5→8；COMMAND_DOCS 加 4 新命令；命令总数 51 → 52 |
+| **8** | 文档更新 | 🔄 进行中 | 本文件 PROJECT_OVERVIEW.md 已更新 §2.4 / §3.1 / §5.4 / 新增 §九 |
 
 ### Phase 0-2 关键成果
 
@@ -891,18 +891,48 @@ observation/reveal/
 已修改: server.py（注册新 reveal_controls 替代旧）
 ```
 
-**端到端验证**（Phase 2 完成后）：
-- Server 注册 47 个命令，`reveal_controls` / `observe_screen` / `click_element` 全部正确注册
-- Detector 测试：`high/container_id`、`medium/button_id`、`none` 三级都按预期工作
-- 策略查找：3 个 App 各 3 步策略，未知 App 自动 fallback 到 default
+### Phase 3-7 关键成果
 
-### 下一步工作
+**Phase 3 — DPAD Executor**（新增 4 文件 + 1 测试文件，22 单测）
 
-- **Phase 3**: 实现 `observation/dpad/`（DPAD Executor + 焦点追踪）
-- **Phase 4**: 实现 `observation/verify/`（Verifier + 8 个谓词 + Recovery）
-- **Phase 5**: 用新原语重写 aiqiyi + Tencent 的 8 个播放器命令
-- **Phase 6+7**: 重命名 + SYSTEM_PROMPT 重写
-- **Phase 8**: 完成本文件剩余部分（§7 Mermaid 图重绘）
+```
+observation/dpad/
+├── __init__.py
+├── executor.py          # 4 级 API: dpad_press / navigate / focus_element / confirm
+├── focus_tracker.py     # 焦点追踪：find_focused_node + detect_focus_change
+└── keymaps.py           # per-App 键位数据（aiqiyi/tencent/quark）
+```
+
+**Phase 4 — Verification Framework**（新增 4 文件 + 1 测试文件，29 单测）
+
+```
+observation/verify/
+├── __init__.py
+├── predicates.py        # 8 个谓词工厂（bar_visible, playing_state_changed, ...）
+├── recovery.py          # 5 个恢复策略（re_reveal, retry_dpad_enter, ...）+ chain 组合器
+└── verifier.py          # verify() + verify_after_action()
+```
+
+**Phase 5 — 重构 8 个播放器命令**（改动 8 文件 + 2 新增共享常量，净减 217 行）
+
+- `aiqiyi/_shared.py` + `Tencent/_shared.py`：集中常量
+- 8 个命令全部用 `resolve → reveal → action → verify_after_action` 模式重写
+- 每个命令返回含 `verification.verified` + `recovered` 字段
+
+**Phase 6+7 — 重命名 + Agent 层**
+
+- `ocr/` 目录整体迁移到 `observation/screen/`；`observation_cache.py` 提升到 `observation/`
+- `SYSTEM_PROMPT` 重写：3 类页面模型 + 状态感知 + 验证工作流 + OCR 不定位隐藏控件
+- `MAX_TOOL_CALLS_PER_TURN`: 5 → 8
+- `COMMAND_DOCS` 加 4 个新命令（resolve_state, reveal_controls, dpad_navigate, dpad_confirm + dpad_press + focus_element）
+- `resolve_state` 注册为独立命令；命令总数 51 → 52
+
+### 累计成果
+
+- **单测**：86 个全过（Phase 0: 35 + Phase 3: 22 + Phase 4: 29）
+- **命令数**：52 个
+- **observation 子模块**：state / reveal / dpad / verify / screen + observation_cache
+- **重构命令**：8 个播放器命令用新架构
 
 ---
 
