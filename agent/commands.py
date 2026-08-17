@@ -251,6 +251,26 @@ COMMAND_DOCS = {
         "params": {"keyword": "搜索关键词"},
         "examples": ["搜索电影"],
     },
+
+    # ── OCR（Dump + OCR 融合）──
+    "observe_screen": {
+        "desc": "观察当前屏幕，返回所有可见元素（包括隐藏控件）。每个元素有 element_id、label（文本）、action_point（点击坐标）。同时返回 screen_version 用于后续校验。",
+        "params": {},
+        "examples": ["看看屏幕有什么", "当前页面有哪些按钮"],
+    },
+    "click_element": {
+        "desc": "点击已定位的元素。必须提供 element_id 和 screen_version（从 observe_screen 返回）。",
+        "params": {
+            "element_id": "元素 ID（从 observe_screen 返回）",
+            "screen_version": "屏幕版本（从 observe_screen 返回）",
+        },
+        "examples": ["点击暂停按钮", "选择第3集"],
+    },
+    "reveal_controls": {
+        "desc": "唤出播放器隐藏的控制条。仅在播放器页面且控件缺失时调用。调用后需再次 observe_screen 验证。",
+        "params": {},
+        "examples": ["显示控制条", "唤出播放控件"],
+    },
 }
 
 

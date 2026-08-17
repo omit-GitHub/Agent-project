@@ -112,6 +112,13 @@ def register_all_commands():
     register("quark.go_back",              cmd_go_back.run)
     register("quark.search",               cmd_search.run)
 
+    # ── OCR (Dump + OCR 融合) ──
+    from ocr import cmd_observe_screen, cmd_click_element, cmd_reveal_controls
+
+    register("observe_screen",             cmd_observe_screen.observe_screen)
+    register("click_element",              cmd_click_element.click_element)
+    register("reveal_controls",            cmd_reveal_controls.reveal_controls)
+
 
 # ─────────────────────── HTTP 处理器 ───────────────────────
 
