@@ -82,9 +82,16 @@ public class Protocol {
     // ---------- 读 ----------
     private static JSONObject ping(GuiAgentService svc) throws JSONException {
         android.util.DisplayMetrics dm = svc.getResources().getDisplayMetrics();
+        // 取前台窗口的真实包名（svc.getPackageName() 返回的是无障碍服务自己的包名，错误）
+        String pkg = "";
+        AccessibilityNodeInfo root = svc.root();
+        if (root != null) {
+            CharSequence pkgCs = root.getPackageName();
+            if (pkgCs != null) pkg = pkgCs.toString();
+        }
         return new JSONObject()
                 .put("pong", true)
-                .put("pkg", svc.getPackageName())
+                .put("pkg", pkg)
                 .put("screen", new JSONObject()
                         .put("w", dm.widthPixels)
                         .put("h", dm.heightPixels)
@@ -96,7 +103,13 @@ public class Protocol {
         int depth = a.optInt("depth", 50);
         AccessibilityNodeInfo root = svc.root();
         JSONObject w = root != null ? Nodes.treeJson(root, inc, depth, 0) : new JSONObject();
-        return new JSONObject().put("pkg", svc.getPackageName()).put("window", w);
+        // 同样取前台窗口的真实包名
+        String pkg = "";
+        if (root != null) {
+            CharSequence pkgCs = root.getPackageName();
+            if (pkgCs != null) pkg = pkgCs.toString();
+        }
+        return new JSONObject().put("pkg", pkg).put("window", w);
     }
 
     private static JSONObject find(GuiAgentService svc, JSONObject a) throws JSONException {

@@ -50,6 +50,9 @@ DUMP_INCLUDE = ["id", "text", "class", "clickable", "enabled",
 MAX_SUMMARY_TEXTS = 15
 MAX_TEXT_LEN = 40
 
+# 我们自己 App 的包名（ping 会错误返回这个，需要替换）
+_OWN_PKG = "com.huawei.aifttr.digitalpersonshell"
+
 
 # ─────────────── 主入口 ───────────────
 
@@ -99,6 +102,12 @@ def resolve_state(force_refresh: bool = False) -> StateSnapshot:
 
         window = dump_resp.get("data", {}).get("window", {}) or {}
         tree = window if window else dump_resp.get("data", {})
+
+        # Work around Java ping/dump bug: 如果 pkg 是自己的 App，从 UI 树提取真实 pkg
+        if pkg == _OWN_PKG or not pkg:
+            tree_pkg = _extract_pkg_from_tree(tree)
+            if tree_pkg:
+                pkg = tree_pkg
 
         # 3. 提取可见文字
         summary = collect_texts(
@@ -200,6 +209,38 @@ def _extract_focused_element(tree: Dict[str, Any]) -> Optional[str]:
         if found:
             return found
     return None
+
+
+def _extract_pkg_from_tree(tree: Dict[str, Any]) -> str:
+    """从 UI 树中提取前台 App 的真实包名。
+
+    Java 端 ping/dump 错误返回无障碍服务自己的包名（_OWN_PKG），
+    但 UI 树里节点的 id 字段形如 "com.qiyi.video.speaker:id/btn_pause"，
+    包含真实包名。通过统计 id 前缀出现次数，取最多的作为前台 App。
+
+    Returns:
+        包名字符串，找不到则返回空字符串
+    """
+    if not tree:
+        return ""
+    pkg_counts: Dict[str, int] = {}
+
+    def visit(node):
+        if not node:
+            return
+        nid = node.get("id") or ""
+        if ":" in nid:
+            pkg = nid.split(":", 1)[0]
+            if pkg and pkg != _OWN_PKG:
+                pkg_counts[pkg] = pkg_counts.get(pkg, 0) + 1
+        for child in node.get("children", []) or []:
+            visit(child)
+
+    visit(tree)
+    if not pkg_counts:
+        return ""
+    # 返回出现次数最多的 pkg
+    return max(pkg_counts, key=pkg_counts.get)
 
 
 # ─────────────── 便捷方法 ───────────────

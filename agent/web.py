@@ -161,6 +161,11 @@ def api_health():
 # ─────────────── 启动 ───────────────
 
 def main():
+    # 强制 stdout 使用 UTF-8（Windows GBK 终端默认无法打印 emoji）
+    if sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
     host = os.environ.get("WEB_HOST", "0.0.0.0")
     port = int(os.environ.get("WEB_PORT", "5000"))
 
