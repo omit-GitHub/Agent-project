@@ -101,7 +101,14 @@ def run(params=None):
     # 1. 点搜索入口
     r1 = click_node_by_id(SEARCH_ENTRY_ID)
     if not r1.get("ok"):
-        return error("NO_MATCH", f"Search entry not found: {SEARCH_ENTRY_ID}")
+        # 搜索入口 ID 可能变了，尝试直接找搜索框
+        # 如果已经在搜索页，搜索框会存在
+        r_check = find_nodes(SEARCH_TEXT_ID, limit=1)
+        if r_check.get("ok") and r_check.get("data", {}).get("nodes"):
+            # 已经在搜索页，跳过点击入口
+            pass
+        else:
+            return error("NO_MATCH", f"Search entry not found: {SEARCH_ENTRY_ID}")
     sleep(1.0)
 
     # 2. 填关键词

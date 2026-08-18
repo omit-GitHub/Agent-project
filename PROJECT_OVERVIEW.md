@@ -523,87 +523,227 @@ digitalpersonshell/
 
 ## 三、模块间关系与数据流
 
-### 3.1 主链路（用户说话到视频响应，v2 更新）
+### 3.1 主链路（用户说话到视频响应，v3 详细版）
+
+以用户输入"调到 1.5 倍速"为例，完整数据流如下：
 
 ```
-1. 用户输入 (文字 / 语音)
-      │
-      ▼
-2. [agent/agent.py] VideoAgent.chat()
-   - 拼接 system prompt + 历史 + 用户消息
-   - 调 Qwen (DashScope, OpenAI 兼容模式)
-   - Qwen 返回 tool_calls: control_device(command, params)
-      │
-      ▼
-3. [agent/agent.py] _execute_command()
-   - HTTP POST http://{DEVICE_IP}:8765/v1/compound
-   - body: {"command": "aiqiyi.toggle_play", "params": {}}
-      │
-      ▼
-4. [commands/server.py] CompoundHandler._handle_compound()
-   - 解析 body
-   - 调 registry.execute(command, params)
-      │
-      ▼
-5. [commands/registry.py] CompoundRegistry.execute()
-   - 单线程执行器提交 handler
-   - 15s 超时保护
-      │
-      ▼
-6. [commands/aiqiyi/run_toggle.py] run(params)   ← v2 新流程
-   - a. resolve_state() 检查 page_type == 'player'
-   - b. 若 control_bar 不可见 → reveal_controls(app) 唤出
-   - c. 执行核心动作（click_node / dpad_navigate）
-   - d. verify_after_action() 验证结果
-      │
-      ▼
-7. [observation/state/resolver.py] resolve_state()
-   - ping → dump → classify → detect_player → assemble StateSnapshot
-      │
-      ▼
-8. [observation/reveal/revealer.py] reveal_controls()
-   - 取 per-App 策略 → 依次执行动作 → 三级检测控制条是否出现
-      │
-      ▼
-9. [observation/verify/verifier.py] verify_after_action()
-   - 执行 action → 验证谓词（bar_visible / playing_changed / ...）
-   - 失败 → recover + 重试一次 → 返回 verification 结果
-      │
-      ▼
-10. [commands/send.py] send(req)
-    - 纯 Python WebSocket 客户端
-    - 发到 ws://127.0.0.1:8322/guiagent
-      │
-      ▼
-11. [Java] WsCommandServer :8322
-    - 收到文本帧 → LineHandler → Protocol.handle()
-      │
-      ▼
-12. [Java] Protocol.java 分发
-    - 根据 op 字段调用对应 Android 无障碍 API
-    - 例如 op=tap → svc.dispatchGesture(tap x,y)
-      │
-      ▼
-13. Android 系统执行
-    - AccessibilityService 注入点击/滑动/文本
-    - 视频 App 响应（暂停、换集、跳进度等）
-      │
-      ▼
-14. 响应原路返回
-    - Protocol → WsFrame → send.py → utils → run_*.py
-    - registry 调 resolve_state() 获取富状态，附到 data.state
-    - server.py → HTTP 响应
-    - agent.py 拿到结果（含 verification.verified + state）
-      → 让 Qwen 生成自然语言回复
-      │
-      ▼
-15. 用户看到回复 (CLI / Web / 语音 TTS)
+┌─────────────────────────────────────────────────────────────────┐
+│  1. Web 前端 (Flask :5000)                                       │
+│     - 接收 POST /api/chat {message: "调到 1.5 倍速"}             │
+│     - 调用 get_agent().chat(message)                            │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+─────────────────────────────────────────────────────────────────┐
+│  2. Agent 层 (VideoAgent)                                        │
+│     - 拼接 history: [system_prompt, ..., user_message]           │
+│     - 调用 Qwen LLM (DashScope API, qwen3.7-plus)               │
+│     - 返回: tool_calls = [control_device(command, params)]       │
+│     - 最多 10 次 tool call (MAX_TOOL_CALLS)                      │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  3. 命令执行 (_execute_command)                                  │
+│     - HTTP POST http://127.0.0.1:8765/v1/compound               │
+│     - body: {command: "tencent.set_speed", params: {...}}        │
+│     - timeout: 20s                                              │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  4. HTTP 命令服务 (server.py :8765)                              │
+│     - CompoundHandler._handle_compound()                        │
+│     - 解析 command 和 params                                    │
+│     - 调用 registry.execute(command, params)                    │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  5. 命令注册表 (registry.py)                                     │
+│     - 单线程执行器 (max_workers=1，串行化)                       │
+│     - 捕获基线 pkg (当前前台 App)                               │
+│     - 提交到线程池，15s 超时保护                                │
+│     - 执行命令函数: run_speed(params)                           │
+│     - 执行后 await_stable() 等 UI 稳定                          │
+│     - 附加 state 到响应 (resolve_state())                       │
+─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  6. 命令函数 (Tencent/run_speed.py)                              │
+│     - resolve_state() 检查 page_type == 'player'                │
+│     - 解析 speed 参数: "1.5"                                    │
+│     - 定义 action():                                            │
+│       a. 如果 control_bar 不可见 → reveal_controls()            │
+│       b. tap(1027, 749) 打开倍速面板                            │
+│       c. sleep(1.0s)                                            │
+│       d. tap(684, 284) 点击 1.5X 选项                          │
+│     - verify_after_action():                                    │
+│       - predicate: speed_changed("1.5")                         │
+│       - 如果失败 → re_reveal + retry (1 次)                     │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+─────────────────────────────────────────────────────────────────┐
+│  7. WS 客户端 (send.py)                                          │
+│     - WebSocket 连接到 ws://127.0.0.1:8322/guiagent             │
+│     - 发送 NDJSON: {id: "...", op: "tap", args: {...}}          │
+│     - 等待响应 (timeout: 15s)                                   │
+│     - 返回: {ok: true, data: {...}}                             │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  8. Java WS 服务 (WsCommandServer :8322)                         │
+│     - 接收文本帧                                                │
+│     - LineHandler → Protocol.handle(svc, line)                  │
+│     - 分发: case "tap" → tap(svc, args)                         │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  9. 无障碍服务 (GuiAgentService)                                 │
+│     - AccessibilityService.injectGesture(tap x, y)              │
+│     - Android 系统执行点击                                      │
+│     - 腾讯视频 App 响应：倍速面板打开 → 选中 1.5X               │
+└─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  10. 响应原路返回                                                │
+│      Protocol → WsFrame → send.py → run_speed.py                │
+│      → registry (附加 state) → server.py → HTTP 响应            │
+│      → agent.py (LLM 生成自然语言回复)                          │
+│      → web.py → JSON 响应                                       │
+─────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+用户看到："已为您设置 1.5 倍速播放"
 ```
 
-**v2 vs v1 主链路关键差异**：
-- v1 步骤 6 只做"盲 tap + sleep"，无状态检查、无唤出、无验证
-- v2 步骤 6 内部分解为 **resolve → reveal → act → verify** 四步，harness 自动处理机械细节
-- v2 步骤 14 返回富状态 `StateSnapshot`（含 page_type, player state 等），Agent 看到完整场景信息
+---
+
+### 3.1.1 关键组件详解
+
+#### **Agent 层** (`agent/agent.py`)
+
+```python
+def chat(self, user_message):
+    # 1. 追加用户消息到历史
+    self.history.append({"role": "user", "content": user_message})
+    
+    # 2. 调用 LLM (可能多轮 tool call)
+    return self._chat_loop()
+
+def _chat_loop(self):
+    for _ in range(MAX_TOOL_CALLS_PER_TURN):  # 最多 10 次
+        # 调用 Qwen
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=self.history,
+            tools=self.tools,  # 单函数策略：control_device(command, params)
+        )
+        
+        message = response.choices[0].message
+        
+        # 如果没有 tool_calls，直接返回文字回复
+        if not message.tool_calls:
+            return message.content
+        
+        # 执行每个 tool call
+        for tool_call in message.tool_calls:
+            result = self._execute_command(cmd, params)
+            # 追加结果到 history，让 LLM 继续推理
+        
+        # 循环继续，直到 LLM 返回文字或达到上限
+```
+
+#### **命令注册表** (`commands/registry.py`)
+
+```python
+def execute(self, command, params):
+    # 1. 捕获基线 pkg（当前前台 App）
+    baseline_pkg = self._capture_baseline_pkg()
+    
+    # 2. 提交到单线程执行器（串行化，避免并发）
+    future = self._executor.submit(self._run_command, handler, params)
+    
+    # 3. 等待结果（15s 超时）
+    result = future.result(timeout=15)
+    
+    # 4. 等待 UI 稳定（最多 8s）
+    self._attach_state(result, baseline_pkg)
+    
+    return result
+```
+
+#### **状态附加** (`registry.py._attach_state`)
+
+```python
+def _attach_state(self, result, baseline_pkg):
+    if result.get("ok"):
+        # 等待 UI 稳定
+        await_stable(baseline_pkg, cap_ms=8000)
+        # 获取富状态（page_type, player state 等）
+        rich_state = resolve_state()
+        result["data"]["state"] = rich_state.to_dict()
+    else:
+        # 失败也附加状态，让 Agent 知道发生了什么
+        result["state"] = resolve_state().to_dict()
+```
+
+#### **命令函数示例** (`Tencent/run_speed.py`)
+
+```python
+def run(params):
+    # 1. 解析参数
+    speed = params.get("speed", "1.5")
+    
+    # 2. 检查前置条件
+    state = resolve_state()
+    if state.page_type != "player":
+        return error("WRONG_PAGE")
+    
+    # 3. 定义 action
+    def action():
+        # 控制条未显 → 先唤出
+        if not state.player.control_bar_visible:
+            reveal_controls(app="tencent")
+        # 打开倍速面板
+        tap(1027, 749)
+        sleep(1.0)
+        # 点击目标倍速
+        tap(*SPEED_OPTIONS[speed])
+    
+    # 4. 执行 + 验证 + 失败恢复
+    result = verify_after_action(
+        action_fn=action,
+        predicate=speed_changed(speed),  # 验证谓词
+        recover_fn=re_reveal(app="tencent"),  # 恢复策略
+        max_retries=1,  # 最多重试 1 次
+    )
+    
+    return success_with_data("tencent.set_speed", {
+        "result": f"set to {speed}",
+        "verification": result.verification.to_dict(),
+        "recovered": result.recovered,
+    })
+```
+
+---
+
+### 3.1.2 数据流关键特点
+
+| 特点 | 说明 |
+|------|------|
+| **单函数 function calling** | LLM 只看到一个 `control_device(command, params)` 函数，命令列表写在 description 里 |
+| **串行执行** | registry 用单线程执行器，命令排队执行，避免并发改 UI |
+| **自动状态附加** | 每个命令执行后自动 attach `resolve_state()` 结果，Agent 不用单独调 `get_state` |
+| **验证 + 恢复** | 命令内部自带 `verify_after_action()`，失败自动恢复重试 |
+| **15s 超时** | registry 层硬超时，防止命令卡死 |
+| **10 次 tool call 上限** | Agent 层限制，防止 LLM 死循环 |
 
 ### 3.2 调用方向矩阵
 
@@ -939,3 +1079,51 @@ observation/verify/
 **文档结束**
 
 本文件是 GUIAgent 项目的完整逐字描述，覆盖所有模块的职责、接口、数据流和设计决策。**v2 架构重构**正在推进中（Phase 0-2 已落地，Phase 3-8 见本章状态表）。配合 `README.md`（编译部署）、`agent/README.md`（Agent 使用）、完整重构方案 `~/.claude/plans/concurrent-snuggling-ritchie.md` 一起阅读，可完整理解整个项目。
+
+---
+
+### 已修复问题
+
+| 问题 | 原因 | 修复 |
+|---|---|---|
+| **搜索失败死循环** | `launcher_search` 的搜索入口 ID (`classsic_nav_search`) 在 launcher 更新后失效 | `cmd_launcher_search.py` 增加检测：如果已在搜索页就跳过点击入口 |
+| **ping/dump 返回错误 pkg** | Java `Protocol.java` 用 `svc.getPackageName()` 返回无障碍服务自己的包名 | 改用 `root.getPackageName()` 从根节点取真实前台包名 |
+| **pkg 提取兜底** | 即使 ping 返回错误 pkg，也能从 UI 树节点 ID 前缀提取真实包名 | `resolver.py` 增加 `_extract_pkg_from_tree()` |
+| **Web 前端 GBK 编码** | Windows 终端无法打印 emoji (🎬) | `web.py` 强制 stdout 使用 UTF-8 |
+| **Agent 死循环** | LLM 反复调用 tool 直到 MAX_TOOL_CALLS 上限 | 改进 SYSTEM_PROMPT，增加失败处理指引 |
+| **launcher_search 失败后盲目点击** | Agent 不会在搜索失败后放弃 | 改进命令错误处理，Agent 学会识别失败 |
+
+---
+
+### 待修复问题
+
+| 问题 | 影响 | 优先级 |
+|---|---|---|
+| **广告期间无法调倍速** | 广告播放时控制条隐藏，Agent 无法操作 | 中（等广告播完即可） |
+| **launcher 搜索入口 ID 持续失效** | 需要更新 `SEARCH_ENTRY_ID` 或改成动态查找 | 高 |
+| **UI 树有时为空** | accessibility service 只能看到自己的 App 窗口 | 高（需重建 APK 部署 Java 修复） |
+| **DPAD ENTER 超时** | `StbCmdService` 回调不稳定 | 中 |
+
+---
+
+### 累计成果
+
+- **单测**：86 个全过（Phase 0: 35 + Phase 3: 22 + Phase 4: 29）
+- **命令数**：52 个
+- **observation 子模块**：state / reveal / dpad / verify / screen + observation_cache
+- **重构命令**：8 个播放器命令用新架构
+- **文档**：PROJECT_OVERVIEW.md v3（包含完整数据流 + 组件详解）
+
+---
+
+**文档结束**
+
+本文件是 GUIAgent 项目的完整逐字描述，覆盖所有模块的职责、接口、数据流和设计决策。**v2 架构重构**已完成（Phase 0-7 全部落地），包括：
+- 状态识别 (State Resolver)
+- 控件唤出 (Control Revealer)
+- DPAD 焦点导航
+- 动作验证与恢复
+- 8 个播放器命令重构
+- Agent 层升级 (SYSTEM_PROMPT, MAX_TOOL_CALLS)
+
+配合 `README.md`（编译部署）、`agent/README.md`（Agent 使用）、完整重构方案 `~/.claude/plans/concurrent-snuggling-ritchie.md` 一起阅读，可完整理解整个项目。
