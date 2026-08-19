@@ -141,6 +141,11 @@ def register_all_commands():
     register("dpad_confirm",               dpad_executor.run_confirm)
     register("focus_element",              dpad_executor.run_focus_element)
 
+    # ── Observation: VLM Execute (Phase 1 VLM 集成) ──
+    from common import cmd_vlm_execute
+
+    register("vlm_execute",                cmd_vlm_execute.run)
+
 
 # ─────────────────────── HTTP 处理器 ───────────────────────
 

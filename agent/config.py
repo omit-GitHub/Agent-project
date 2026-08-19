@@ -24,18 +24,25 @@ except ImportError:
 
 # ─────────────── DashScope API ───────────────
 
-# 通义千问 API Key（必填）
+# 通义千问 API Key（文本模型，必填）
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
 
-# DashScope OpenAI 兼容端点
+# VLM API Key（视觉模型，可选独立账号；留空则复用 DASHSCOPE_API_KEY）
+VLM_API_KEY = os.environ.get("VLM_API_KEY", "") or DASHSCOPE_API_KEY
+
+# DashScope OpenAI 兼容端点（文本 + VLM 共用）
 DASHSCOPE_BASE_URL = os.environ.get(
     "DASHSCOPE_BASE_URL",
     "https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
 
-# 模型名称（qwen-plus 性价比高，qwen-max 能力最强）
-# 可选: qwen-turbo, qwen-plus, qwen-max, qwen-long
+# 文本模型名称（qwen-plus 性价比高，qwen-max 能力最强）
+# 可选: qwen-turbo, qwen-plus, qwen-max, qwen-long, qwen3.7-plus
 MODEL_NAME = os.environ.get("MODEL_NAME", "qwen-plus")
+
+# VLM 模型名称（视觉语言模型）
+# 可选: qwen-vl-plus (便宜), qwen-vl-max (精度更高)
+VLM_MODEL_NAME = os.environ.get("VLM_MODEL_NAME", "qwen-vl-plus")
 
 
 # ─────────────── 设备连接 ───────────────
