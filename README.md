@@ -1,6 +1,6 @@
 # GUIAPP 编译部署手册
 
-目标设备：华为 AZ102u-10 FTTR 中屏盒（RK3566，Android 9，armeabi-v7a）。
+目标设备：AZ102u-10 FTTR 中屏盒（RK3566，Android 9，armeabi-v7a）。
 设备使用 DHCP，**重启后 IP 末段会变**，每次部署前需先扫描定位。
 
 ## 一键流程
