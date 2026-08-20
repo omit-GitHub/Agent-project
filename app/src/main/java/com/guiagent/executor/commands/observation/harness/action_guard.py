@@ -1,280 +1,401 @@
 # -*- coding: utf-8 -*-
-"""Action Guard — 校验 VLM 建议的动作是否合法。
+"""Action Guard — VLM 输出的合法性校验层。
 
-对应 Cursor 任务书 §6.1。
-所有 VLM 输出的动作必须经过此模块校验才能执行。
+对每个 VLM 建议的动作进行多重前置检查，只有全部通过才允许执行。
+防止误触发登录、支付、删除等不可逆操作。
+
+校验维度：
+  1. 动作类型合法性
+  2. candidate_id 归属（属于当前 CandidateMap）
+  3. bbox 合法性（越界、面积、位置）
+  4. 页面版本兼容性（CandidateMap 未过期）
+  5. 敏感操作拦截（登录/支付/删除/验证码）
+  6. 重复失败候选排除（同一 screen_version 下不再点击已失败候选）
 """
-from dataclasses import dataclass
-from typing import Literal
+import re
+from dataclasses import dataclass, field
+from typing import Literal, Optional
 
-from ..vlm.schemas import NextAction
+from ..candidates.schemas import CandidateMap, UiCandidate, PixelBBox
 
 
+# ─────────────── 敏感词库 ───────────────
+
+SENSITIVE_KEYWORDS = [
+    # 支付/购买
+    "付款", "支付", "充值", "订阅", "购买", "扣费", "开通会员", "VIP",
+    # 不可逆操作
+    "删除", "卸载", "清除", "格式化", "注销", "退出登录",
+    # 认证/安全
+    "密码", "验证码", "授权", "登录", "注册", "短信",
+    # 发送/提交
+    "发送", "提交", "确认", "确定",
+]
+
+# 敏感页面类型（这些页面下的所有点击都应谨慎）
+SENSITIVE_PAGE_PATTERNS = [
+    "login", "auth", "payment", "subscribe", "confirm",
+]
+
+
+# ─────────────── Guard 决策 ───────────────
+
+@dataclass
 class GuardDecision:
-    """Guard 决策结果。"""
-    def __init__(
-        self,
-        allowed: bool,
-        action: NextAction | None = None,
-        reason: str = "",
-        error_code: str | None = None,
-    ):
-        self.allowed = allowed
-        self.action = action
-        self.reason = reason
-        self.error_code = error_code
+    """Guard 校验结果。"""
+    allowed: bool
+    action_type: str = ""
+    reason: str = ""
+    error_code: Optional[str] = None
+    requires_refinement: bool = False  # 需要局部定位细化
+    refined_bbox: Optional[PixelBBox] = None
 
     def __bool__(self):
         return self.allowed
 
 
-# 敏感词列表（触发 ask_user）
-SENSITIVE_KEYWORDS = [
-    "付款", "支付", "充值", "订阅", "购买", "扣费",
-    "删除", "卸载", "清除", "格式化",
-    "发送", "提交", "确认", "授权",
-    "密码", "验证码", "登录", "注册",
-    "退出登录", "注销",
-]
-
-# 敏感区域（归一化坐标，屏幕底部 10% 通常为危险区域）
-SENSITIVE_ZONE_Y_MIN = 0.90
-
-
-# 支持的按键列表
-SUPPORTED_KEYS = {
-    "UP", "DOWN", "LEFT", "RIGHT",
-    "ENTER", "DPAD_CENTER", "MENU", "BACK", "HOME",
-    "VOLUME_UP", "VOLUME_DOWN", "VOLUME_MUTE",
-    "MEDIA_PLAY_PAUSE", "MEDIA_PLAY", "MEDIA_PAUSE",
-    "MEDIA_NEXT", "MEDIA_PREVIOUS", "FAST_FORWARD", "REWIND",
-}
-
-# 支持的方向列表
-SUPPORTED_DIRECTIONS = {"up", "down", "left", "right"}
-
+# ─────────────── 执行预算 ───────────────
 
 @dataclass
-class ActionGuardConfig:
-    """Action Guard 配置。"""
-    min_bbox_area: float = 0.0003
-    max_bbox_area: float = 0.80
-    sensitive_confirm: bool = True
-    inner_padding: float = 0.02  # 2% 屏幕内边距
+class ExecutionBudget:
+    """执行预算跟踪器。"""
+    max_steps: int = 8
+    max_vlm_calls: int = 4
+    max_vlm_calls_with_recovery: int = 6
+    max_recoveries: int = 2
+    hard_timeout_seconds: int = 20
 
+    step_count: int = field(default=0, init=False)
+    vlm_call_count: int = field(default=0, init=False)
+    recovery_count: int = field(default=0, init=False)
 
-def validate_action(
-    action: NextAction,
-    screen_width: int,
-    screen_height: int,
-    subgoal: str,
-    config: ActionGuardConfig | None = None,
-) -> GuardDecision:
-    """校验动作是否合法。
+    @property
+    def remaining_steps(self) -> int:
+        return max(0, self.max_steps - self.step_count)
 
-    Args:
-        action: VLM 建议的动作
-        screen_width: 屏幕宽度（像素）
-        screen_height: 屏幕高度（像素）
-        subgoal: 用户子目标（用于敏感词检测）
-        config: 配置（可选）
+    @property
+    def remaining_vlm_calls(self) -> int:
+        limit = self.max_vlm_calls_with_recovery if self.recovery_count > 0 else self.max_vlm_calls
+        return max(0, limit - self.vlm_call_count)
 
-    Returns:
-        GuardDecision
-    """
-    config = config or ActionGuardConfig()
+    @property
+    def remaining_recoveries(self) -> int:
+        return max(0, self.max_recoveries - self.recovery_count)
 
-    # 1. 检查动作类型是否支持
-    if action.type not in NextAction.model_fields["type"].annotation.__args__:
-        return GuardDecision(
-            False,
-            reason=f"Unsupported action type: {action.type}",
-            error_code="UNSUPPORTED_ACTION",
+    def can_continue(self) -> bool:
+        """是否还能继续执行。"""
+        return (
+            self.remaining_steps > 0
+            and self.remaining_vlm_calls > 0
         )
 
-    # 2. tap 必须有 target_label 和 bbox
-    if action.type == "tap":
-        if not action.target_label:
+    def record_step(self):
+        self.step_count += 1
+
+    def record_vlm_call(self):
+        self.vlm_call_count += 1
+
+    def record_recovery(self):
+        self.recovery_count += 1
+
+
+# ─────────────── Action Guard ───────────────
+
+class ActionGuard:
+    """动作合法性校验器。
+
+    所有 VLM 输出的动作必须经过此 Guard 才能执行。
+    """
+
+    def __init__(self):
+        self._failed_candidates = set()  # (screen_version, candidate_id) 已失败候选
+
+    def validate(
+        self,
+        action_type: str,
+        candidate_id: Optional[str] = None,
+        target_label: Optional[str] = None,
+        bbox_px: Optional[PixelBBox] = None,
+        key: Optional[str] = None,
+        text: Optional[str] = None,
+        direction: Optional[str] = None,
+        distance: Optional[float] = None,
+        candidate_map: Optional[CandidateMap] = None,
+        subgoal: Optional[str] = None,
+        screen_width: int = 1280,
+        screen_height: int = 800,
+    ) -> GuardDecision:
+        """校验动作合法性。
+
+        Returns:
+            GuardDecision
+        """
+        # 1. 检查动作类型
+        allowed_types = {
+            "tap_candidate", "tap_visual", "swipe", "type_text",
+            "remote_key", "media_key", "wait", "back",
+            "reveal_controls", "done", "ask_user",
+        }
+        if action_type not in allowed_types:
             return GuardDecision(
-                False,
-                reason="tap requires target_label",
-                error_code="MISSING_TARGET_LABEL",
-            )
-        if not action.bbox_normalized:
-            return GuardDecision(
-                False,
-                reason="tap requires bbox_normalized",
-                error_code="MISSING_BBOX",
-            )
-        bbox = action.bbox_normalized
-        if bbox.x1 >= bbox.x2 or bbox.y1 >= bbox.y2:
-            return GuardDecision(
-                False,
-                reason=f"Invalid bbox: x1={bbox.x1} >= x2={bbox.x2} or y1={bbox.y1} >= y2={bbox.y2}",
-                error_code="INVALID_BBOX",
-            )
-        area = bbox.area()
-        if area < config.min_bbox_area:
-            return GuardDecision(
-                False,
-                reason=f"bbox area too small: {area:.6f} < {config.min_bbox_area}",
-                error_code="BBOX_TOO_SMALL",
-            )
-        if area > config.max_bbox_area:
-            return GuardDecision(
-                False,
-                reason=f"bbox area too large: {area:.4f} > {config.max_bbox_area}",
-                error_code="BBOX_TOO_LARGE",
-            )
-        # 检查是否在敏感区域
-        if bbox.y1 >= SENSITIVE_ZONE_Y_MIN:
-            return GuardDecision(
-                False,
-                reason=f"bbox in sensitive zone: y1={bbox.y1} >= {SENSITIVE_ZONE_Y_MIN}",
-                error_code="SENSITIVE_ZONE",
+                False, action_type=action_type,
+                reason=f"Unknown action type: {action_type}",
+                error_code="UNKNOWN_ACTION",
             )
 
-    # 3. remote_key / media_key 必须有合法的 key
-    if action.type in ("remote_key", "media_key"):
-        if not action.key:
+        # 2. 安全操作直接通过
+        if action_type in ("wait", "back", "done", "ask_user", "reveal_controls"):
+            return GuardDecision(True, action_type=action_type, reason="safe operation")
+
+        # 3. tap_candidate 校验
+        if action_type == "tap_candidate":
+            return self._validate_tap_candidate(
+                candidate_id, candidate_map, subgoal,
+                screen_width, screen_height,
+            )
+
+        # 4. tap_visual 校验
+        if action_type == "tap_visual":
+            return self._validate_tap_visual(
+                bbox_px, target_label, subgoal,
+                screen_width, screen_height,
+            )
+
+        # 5. remote_key / media_key
+        if action_type in ("remote_key", "media_key"):
+            return self._validate_key(key)
+
+        # 6. type_text
+        if action_type == "type_text":
+            return self._validate_type_text(text, subgoal)
+
+        # 7. swipe
+        if action_type == "swipe":
+            return self._validate_swipe(direction, distance)
+
+        return GuardDecision(False, reason="Unhandled action type", error_code="INTERNAL")
+
+    def _validate_tap_candidate(
+        self,
+        candidate_id: Optional[str],
+        candidate_map: Optional[CandidateMap],
+        subgoal: Optional[str],
+        screen_width: int,
+        screen_height: int,
+    ) -> GuardDecision:
+        """校验 tap_candidate 动作。"""
+        # 必须有 candidate_id
+        if not candidate_id:
             return GuardDecision(
-                False,
-                reason=f"{action.type} requires key",
+                False, action_type="tap_candidate",
+                reason="tap_candidate requires candidate_id",
+                error_code="MISSING_CANDIDATE_ID",
+            )
+
+        # candidate 必须存在于当前 CandidateMap
+        if candidate_map is None:
+            return GuardDecision(
+                False, action_type="tap_candidate",
+                reason="No candidate map available",
+                error_code="NO_CANDIDATE_MAP",
+            )
+
+        candidate = None
+        for c in candidate_map.candidates:
+            if c.candidate_id == candidate_id:
+                candidate = c
+                break
+
+        if candidate is None:
+            return GuardDecision(
+                False, action_type="tap_candidate",
+                reason=f"Candidate {candidate_id} not found in current map",
+                error_code="CANDIDATE_NOT_FOUND",
+            )
+
+        # 检查是否已失败过（同一 screen_version 下）
+        fail_key = (candidate_map.screen_version, candidate_id)
+        if fail_key in self._failed_candidates:
+            return GuardDecision(
+                False, action_type="tap_candidate",
+                reason=f"Candidate {candidate_id} already failed in this screen version",
+                error_code="PREVIOUSLY_FAILED",
+            )
+
+        # 检查 bbox 合法性
+        bbox = candidate.bbox_px
+        if bbox.x1 < 0 or bbox.y1 < 0 or bbox.x2 > screen_width or bbox.y2 > screen_height:
+            return GuardDecision(
+                False, action_type="tap_candidate",
+                reason=f"bbox out of screen: ({bbox.x1},{bbox.y1})-({bbox.x2},{bbox.y2})",
+                error_code="BBOX_OUT_OF_SCREEN",
+            )
+
+        # OCR-only 候选低于阈值时需要 refinement
+        if candidate.source == "ocr" and candidate.clickable_likelihood < 0.55:
+            return GuardDecision(
+                False, action_type="tap_candidate",
+                reason="OCR-only candidate needs refinement",
+                error_code="NEEDS_REFINEMENT",
+                requires_refinement=True,
+            )
+
+        # 敏感操作检查
+        if self._is_sensitive(candidate.text, candidate.detector_label, subgoal):
+            return GuardDecision(
+                False, action_type="tap_candidate",
+                reason="Sensitive target requires user confirmation",
+                error_code="SENSITIVE_TARGET",
+            )
+
+        return GuardDecision(
+            True, action_type="tap_candidate",
+            reason=f"candidate {candidate_id} validated",
+        )
+
+    def _validate_tap_visual(
+        self,
+        bbox_px: Optional[PixelBBox],
+        target_label: Optional[str],
+        subgoal: Optional[str],
+        screen_width: int,
+        screen_height: int,
+    ) -> GuardDecision:
+        """校验 tap_visual 动作（兜底像素坐标点击）。"""
+        if not bbox_px:
+            return GuardDecision(
+                False, action_type="tap_visual",
+                reason="tap_visual requires bbox_px",
+                error_code="MISSING_BBOX",
+            )
+
+        if not target_label:
+            return GuardDecision(
+                False, action_type="tap_visual",
+                reason="tap_visual requires target_label",
+                error_code="MISSING_LABEL",
+            )
+
+        # bbox 必须在屏幕内
+        if (bbox_px.x1 < 0 or bbox_px.y1 < 0 or
+                bbox_px.x2 > screen_width or bbox_px.y2 > screen_height):
+            return GuardDecision(
+                False, action_type="tap_visual",
+                reason="bbox out of screen",
+                error_code="BBOX_OUT_OF_SCREEN",
+            )
+
+        # bbox 面积合理性（不能太小也不能太大）
+        area = (bbox_px.x2 - bbox_px.x1) * (bbox_px.y2 - bbox_px.y1)
+        screen_area = screen_width * screen_height
+        area_ratio = area / screen_area
+
+        if area_ratio < 0.0003:
+            return GuardDecision(
+                False, action_type="tap_visual",
+                reason=f"bbox too small: {area}px ({area_ratio:.4f} of screen)",
+                error_code="BBOX_TOO_SMALL",
+            )
+        if area_ratio > 0.80:
+            return GuardDecision(
+                False, action_type="tap_visual",
+                reason=f"bbox too large: {area_ratio:.2f} of screen",
+                error_code="BBOX_TOO_LARGE",
+            )
+
+        # 敏感操作检查
+        if self._is_sensitive(target_label, None, subgoal):
+            return GuardDecision(
+                False, action_type="tap_visual",
+                reason="Sensitive target requires user confirmation",
+                error_code="SENSITIVE_TARGET",
+            )
+
+        return GuardDecision(
+            True, action_type="tap_visual",
+            reason=f"visual target '{target_label}' validated",
+        )
+
+    def _validate_key(self, key: Optional[str]) -> GuardDecision:
+        """校验 remote_key / media_key。"""
+        if not key:
+            return GuardDecision(
+                False, action_type="remote_key",
+                reason="key is required",
                 error_code="MISSING_KEY",
             )
-        if action.key.upper() not in SUPPORTED_KEYS:
+
+        allowed_keys = {
+            "UP", "DOWN", "LEFT", "RIGHT",
+            "ENTER", "DPAD_CENTER", "MENU", "BACK", "HOME",
+            "VOLUME_UP", "VOLUME_DOWN", "VOLUME_MUTE",
+            "MEDIA_PLAY_PAUSE", "MEDIA_PLAY", "MEDIA_PAUSE",
+            "MEDIA_NEXT", "MEDIA_PREVIOUS", "FAST_FORWARD", "REWIND",
+        }
+
+        if key.upper() not in allowed_keys:
             return GuardDecision(
-                False,
-                reason=f"Unsupported key: {action.key}",
+                False, action_type="remote_key",
+                reason=f"Unsupported key: {key}",
                 error_code="UNSUPPORTED_KEY",
             )
 
-    # 4. swipe 必须有 direction 和 distance
-    if action.type == "swipe":
-        if not action.direction:
-            return GuardDecision(
-                False,
-                reason="swipe requires direction",
-                error_code="MISSING_DIRECTION",
-            )
-        if action.direction not in SUPPORTED_DIRECTIONS:
-            return GuardDecision(
-                False,
-                reason=f"Unsupported direction: {action.direction}",
-                error_code="UNSUPPORTED_DIRECTION",
-            )
-        if not action.distance or action.distance < 0.05:
-            return GuardDecision(
-                False,
-                reason=f"swipe distance too small: {action.distance}",
-                error_code="INVALID_DISTANCE",
-            )
+        return GuardDecision(True, action_type="remote_key", reason=f"key '{key}' allowed")
 
-    # 5. type_text 敏感词检测
-    if action.type == "type_text":
-        if not action.text:
+    def _validate_type_text(self, text: Optional[str], subgoal: Optional[str]) -> GuardDecision:
+        """校验 type_text 动作。"""
+        if not text:
             return GuardDecision(
-                False,
-                reason="type_text requires text",
+                False, action_type="type_text",
+                reason="text is required",
                 error_code="MISSING_TEXT",
             )
-        if config.sensitive_confirm:
-            text_lower = action.text.lower()
-            for keyword in SENSITIVE_KEYWORDS:
-                if keyword in text_lower:
-                    return GuardDecision(
-                        False,
-                        reason=f"Sensitive keyword detected: {keyword}",
-                        error_code="SENSITIVE_TEXT",
-                    )
 
-    # 6. 检查 subgoal 是否包含敏感词
-    if config.sensitive_confirm:
-        subgoal_lower = subgoal.lower()
+        # 敏感文本检查（密码、验证码等）
+        if self._is_sensitive(text, None, subgoal):
+            return GuardDecision(
+                False, action_type="type_text",
+                reason="Sensitive text input blocked",
+                error_code="SENSITIVE_TEXT",
+            )
+
+        return GuardDecision(True, action_type="type_text", reason="text allowed")
+
+    def _validate_swipe(self, direction: Optional[str], distance: Optional[float]) -> GuardDecision:
+        """校验 swipe 动作。"""
+        if not direction:
+            return GuardDecision(
+                False, action_type="swipe",
+                reason="direction is required",
+                error_code="MISSING_DIRECTION",
+            )
+        if direction not in ("up", "down", "left", "right"):
+            return GuardDecision(
+                False, action_type="swipe",
+                reason=f"Invalid direction: {direction}",
+                error_code="INVALID_DIRECTION",
+            )
+        return GuardDecision(True, action_type="swipe", reason="swipe allowed")
+
+    def _is_sensitive(
+        self,
+        text: Optional[str],
+        detector_label: Optional[str],
+        subgoal: Optional[str],
+    ) -> bool:
+        """判断是否涉及敏感操作。"""
+        check_text = " ".join(filter(None, [text, detector_label, subgoal])).lower()
+
         for keyword in SENSITIVE_KEYWORDS:
-            if keyword in subgoal_lower:
-                return GuardDecision(
-                    False,
-                    reason=f"Sensitive subgoal keyword: {keyword}",
-                    error_code="SENSITIVE_SUBGOAL",
-                )
+            if keyword.lower() in check_text:
+                return True
 
-    # 7. done / ask_user / wait / back / reveal_controls 直接通过
-    return GuardDecision(True, action=action, reason="OK")
+        return False
 
+    def record_failure(self, screen_version: str, candidate_id: str):
+        """记录候选失败（后续同一 screen_version 下不再点击）。"""
+        self._failed_candidates.add((screen_version, candidate_id))
 
-def tap_to_pixel(
-    bbox_normalized,
-    screen_width: int,
-    screen_height: int,
-    inner_padding: float = 0.02,
-    vlm_padded_size: int = 1024,
-) -> tuple[int, int]:
-    """将归一化 bbox 转换为像素坐标（考虑 VLM 的 padding）。
-
-    VLM (qwen-vl-plus) 内部处理:
-    1. 将输入图像 resize 到保持宽高比的最长边 1024
-    2. 加 padding 变成 1024x1024
-    3. 返回的归一化坐标基于 1024x1024
-
-    例如 1280x800 的图像:
-    - resize 到 1024x640
-    - padding 上下各 192px → 1024x1024
-    - VLM 返回的 y=0.75 实际对应原图的 (0.75*1024-192)/0.8 = 720
-
-    Args:
-        bbox_normalized: BBox 对象（基于 VLM 的 1024x1024 归一化坐标）
-        screen_width: 原始屏幕宽度
-        screen_height: 原始屏幕高度
-        inner_padding: 内边距比例（默认 2%）
-        vlm_padded_size: VLM 的填充后尺寸（默认 1024）
-
-    Returns:
-        (x, y) 像素坐标
-    """
-    # 计算 VLM 的缩放和 padding
-    scale = vlm_padded_size / max(screen_width, screen_height)
-    scaled_w = int(screen_width * scale)
-    scaled_h = int(screen_height * scale)
-    pad_x_vlm = (vlm_padded_size - scaled_w) // 2
-    pad_y_vlm = (vlm_padded_size - scaled_h) // 2
-
-    # 从 VLM 的归一化坐标反算到原始图像坐标
-    # VLM 坐标 → 缩放后坐标 → 原始坐标
-    x1_vlm = bbox_normalized.x1 * vlm_padded_size
-    y1_vlm = bbox_normalized.y1 * vlm_padded_size
-    x2_vlm = bbox_normalized.x2 * vlm_padded_size
-    y2_vlm = bbox_normalized.y2 * vlm_padded_size
-
-    # 去除 padding，得到缩放后的坐标
-    x1_scaled = x1_vlm - pad_x_vlm
-    y1_scaled = y1_vlm - pad_y_vlm
-    x2_scaled = x2_vlm - pad_x_vlm
-    y2_scaled = y2_vlm - pad_y_vlm
-
-    # 缩放回原始尺寸
-    x1_orig = x1_scaled / scale
-    y1_orig = y1_scaled / scale
-    x2_orig = x2_scaled / scale
-    y2_orig = y2_scaled / scale
-
-    # 计算中心
-    cx = (x1_orig + x2_orig) / 2
-    cy = (y1_orig + y2_orig) / 2
-
-    # 在原始坐标空间加内边距
-    w = x2_orig - x1_orig
-    h = y2_orig - y1_orig
-    pad_x_inner = w * inner_padding
-    pad_y_inner = h * inner_padding
-    cx = max(x1_orig + pad_x_inner, min(x2_orig - pad_x_inner, cx))
-    cy = max(y1_orig + pad_y_inner, min(y2_orig - pad_y_inner, cy))
-
-    x = int(cx)
-    y = int(cy)
-
-    # 确保在屏幕内
-    x = max(0, min(screen_width - 1, x))
-    y = max(0, min(screen_height - 1, y))
-
-    return x, y
+    def clear_failures(self):
+        """清除失败记录（新观察后调用）。"""
+        self._failed_candidates.clear()

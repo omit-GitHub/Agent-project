@@ -1,0 +1,7 @@
+{
+  "action_guard_intercept_rate": 0.5833333333333334,
+  "verifier_local_hit_rate": 1.0,
+  "reveal_strategy_accuracy": 1.0,
+  "end_to_end_p95_ms": 971.9247817993164,
+  "timestamp": 1787191601.093347
+}
