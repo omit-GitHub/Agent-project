@@ -1,0 +1,15 @@
+{
+  "detector": {
+    "name": "MockDetector",
+    "version": "1.0.0",
+    "device": "cpu"
+  },
+  "screenshots": 63,
+  "iterations": 2,
+  "latency_p50_ms": 0.08153915405273438,
+  "latency_p95_ms": 0.10085105895996094,
+  "candidates_p50": 20,
+  "candidates_p95": 20,
+  "latency_pass": true,
+  "candidates_pass": true
+}

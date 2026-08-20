@@ -1,0 +1,18 @@
+# Visual Detector 配置
+
+# Detector 类型：mock / omniparser / custom
+DETECTOR_TYPE = "mock"
+
+# Mock Detector 配置
+MOCK_GRID_SIZE = 200
+MOCK_MIN_CONFIDENCE = 0.7
+
+# OmniParser 配置 (Phase B0 待部署)
+OMNIPARSER_URL = "http://127.0.0.1:8790"
+OMNIPARSER_TIMEOUT_MS = 900
+OMNIPARSER_MIN_CONFIDENCE = 0.25
+
+# 通用配置
+DETECTOR_MAX_CANDIDATES = 40
+DETECTOR_CIRCUIT_OPEN_FAILURES = 3
+DETECTOR_CIRCUIT_OPEN_SECONDS = 30
