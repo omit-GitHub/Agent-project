@@ -45,6 +45,8 @@ public class Protocol {
     private static JSONObject dispatch(GuiAgentService svc, String op, JSONObject a) throws Exception {
         switch (op) {
             case "ping": return ping(svc);
+            // @Deprecated dump/find 是遗留接口，新代码应使用 observe_screen() 命令
+            // 保留这些操作是为了向后兼容 aiqiyi/run_episode.py 等旧代码
             case "dump": return dump(svc, a);
             case "find": return find(svc, a);
             case "click_node": return clickNode(svc, a, false);
