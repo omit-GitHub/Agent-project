@@ -1,30 +1,14 @@
 # -*- coding: utf-8 -*-
-"""搜索片源（聚合平台入口，基于 whohuatv launcher，覆盖爱奇艺/优酷/腾讯/芒果）。
-
-对标 Java: SearchCommand.java
-
-参数:
-    {"keyword": "飞驰人生"} — 搜索关键词
-
-前置条件:
-    无。命令内部会先无条件回主页（搜索入口只在主页存在，在主页按 HOME 无害）。
-
-执行逻辑:
-    0. go home
-    1. click id=classsic_nav_search (搜索入口)
-    2. set_text id=mid_search_text_et text=keyword
-    3. click id=mid_search_text (触发搜索)
-    4. find id=pop_mid_content_item_tv limit=20 (读结果)
-"""
+"""搜索片源（聚合平台入口）— Phase 6 无 dump 版。"""
 import json
 import sys
 import time
 
-from common.utils import (
-    success_with_data, error, global_action, click_node_by_id, set_text_by_id,
-    find_nodes, sleep, contains_text, dump, group_by_row, flatten_rows,
-    node_center,
+from common.utils import (  # noqa: E402
+    success_with_data, error, global_action,
+    click_node_by_id, set_text_by_id, sleep,
 )
+from observation.screen.cmd_observe_screen import observe_screen  # noqa: E402
 
 CMD_NAME = "launcher_search"
 
@@ -34,58 +18,8 @@ SEARCH_TRIGGER_ID = "mid_search_text"
 RESULT_ITEM_ID = "pop_mid_content_item_tv"
 
 
-def _build_search_data(keyword, result_nodes, root_node):
-    """构建搜索结果数据。
-
-    Args:
-        keyword: 搜索关键词
-        result_nodes: find_nodes 返回的节点列表
-        root_node: UI 树根节点（用于判断搜索状态）
-
-    Returns:
-        dict: {"query": ..., "search_status": ..., "count": ..., "items": [...]}
-    """
-    # 按行分组 + 展平（对标 Java AccessibilityGrid.groupByRow + flatten）
-    rows = group_by_row(result_nodes)
-    ordered = flatten_rows(rows)
-
-    items = []
-    for i, node in enumerate(ordered):
-        cx, cy = node_center(node)
-        items.append({
-            "index": i + 1,
-            "text": node.get("text", ""),
-            "x": cx,
-            "y": cy,
-        })
-
-    # 判断搜索状态
-    count = len(ordered)
-    if count > 0:
-        search_status = "found"
-    else:
-        query_visible = contains_text(root_node, keyword)
-        no_results_visible = contains_text(root_node, "没有搜索到相关内容")
-        search_status = "not_found" if (query_visible and no_results_visible) else "unknown"
-
-    return {
-        "query": keyword,
-        "search_status": search_status,
-        "count": count,
-        "items": items,
-    }
-
-
 def run(params=None):
-    """搜索片源。
-
-    Args:
-        params: dict，必须包含 {"keyword": "xxx"}
-
-    Returns:
-        dict: 成功返回 {"ok": true, "data": {"command": "launcher_search", ...}}
-              失败返回 {"ok": false, "error": {"code": "...", "message": "..."}}
-    """
+    """搜索片源。"""
     if not params or "keyword" not in params:
         return error("BAD_PARAMS", "Missing parameter: keyword")
 
@@ -94,19 +28,23 @@ def run(params=None):
         return error("BAD_PARAMS", "keyword must not be empty")
     keyword = keyword.strip()
 
-    # 0. 无条件先回主页（launcher 内部也有子页面，仅凭包名无法判断是否在主页）
+    # 0. 回主页
     global_action("HOME")
     sleep(1.0)
 
     # 1. 点搜索入口
     r1 = click_node_by_id(SEARCH_ENTRY_ID)
     if not r1.get("ok"):
-        # 搜索入口 ID 可能变了，尝试直接找搜索框
-        # 如果已经在搜索页，搜索框会存在
-        r_check = find_nodes(SEARCH_TEXT_ID, limit=1)
-        if r_check.get("ok") and r_check.get("data", {}).get("nodes"):
-            # 已经在搜索页，跳过点击入口
-            pass
+        # 检查是否已在搜索页
+        obs_check = observe_screen()
+        if obs_check.get("ok"):
+            candidates = obs_check.get("data", {}).get("candidates", [])
+            in_search_page = any(
+                SEARCH_TEXT_ID in c.get("metadata", {}).get("id", "")
+                for c in candidates
+            )
+            if not in_search_page:
+                return error("NO_MATCH", f"Search entry not found: {SEARCH_ENTRY_ID}")
         else:
             return error("NO_MATCH", f"Search entry not found: {SEARCH_ENTRY_ID}")
     sleep(1.0)
@@ -123,24 +61,50 @@ def run(params=None):
         return error("NO_MATCH", f"Search trigger not found: {SEARCH_TRIGGER_ID}")
     sleep(2.0)
 
-    # 4. 读结果列表
-    r4 = find_nodes(RESULT_ITEM_ID, limit=20)
-    result_nodes = []
-    if r4.get("ok"):
-        result_nodes = r4.get("data", {}).get("nodes", [])
+    # 4. 读结果列表（改用 observe_screen）
+    obs_result = observe_screen()
+    candidates = []
+    if obs_result.get("ok"):
+        candidates = obs_result.get("data", {}).get("candidates", [])
 
-    # dump 获取当前 UI 树根节点（用于判断搜索状态）
-    root_node = {}
-    r_dump = dump(depth=3)
-    if r_dump.get("ok"):
-        root_node = r_dump.get("data", {}).get("window", {})
+    # 构建搜索结果
+    items = []
+    for c in candidates:
+        c_text = c.get("text", "")
+        if c_text and c.get("kind") in ("card", "text"):
+            bbox = c.get("bbox_px", {})
+            items.append({
+                "index": len(items) + 1,
+                "text": c_text,
+                "x": (bbox.get("x1", 0) + bbox.get("x2", 0)) // 2,
+                "y": (bbox.get("y1", 0) + bbox.get("y2", 0)) // 2,
+            })
 
-    data = _build_search_data(keyword, result_nodes, root_node)
+    # 判断搜索状态
+    if len(items) > 0:
+        search_status = "found"
+    else:
+        keyword_echoed = any(
+            keyword.lower() in c.get("text", "").lower()
+            for c in candidates
+        )
+        no_results = any(
+            "没有搜索到" in c.get("text", "")
+            for c in candidates
+        )
+        search_status = "not_found" if (keyword_echoed and no_results) else "unknown"
+
+    data = {
+        "query": keyword,
+        "search_status": search_status,
+        "count": len(items),
+        "items": items,
+    }
+
     return success_with_data(CMD_NAME, data)
 
 
 if __name__ == "__main__":
-    # CLI 用法: python cmd_launcher_search.py [keyword]
     p = None
     if len(sys.argv) > 1:
         p = {"keyword": sys.argv[1]}
