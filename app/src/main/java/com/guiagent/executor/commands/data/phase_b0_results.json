@@ -1,15 +1,16 @@
 {
   "detector": {
-    "name": "MockDetector",
+    "name": "OpenCVDetector",
     "version": "1.0.0",
-    "device": "cpu"
+    "device": "cpu",
+    "method": "edge_detection+contour_analysis"
   },
-  "screenshots": 63,
-  "iterations": 2,
-  "latency_p50_ms": 0.08153915405273438,
-  "latency_p95_ms": 0.10085105895996094,
-  "candidates_p50": 20,
-  "candidates_p95": 20,
+  "screenshots": 103,
+  "iterations": 1,
+  "latency_p50_ms": 16.87145233154297,
+  "latency_p95_ms": 21.886348724365234,
+  "candidates_p50": 15,
+  "candidates_p95": 30,
   "latency_pass": true,
   "candidates_pass": true
 }

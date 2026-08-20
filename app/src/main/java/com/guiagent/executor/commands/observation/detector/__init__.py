@@ -19,6 +19,13 @@ def create_detector() -> UiDetector:
             grid_size=MOCK_GRID_SIZE,
             min_confidence=MOCK_MIN_CONFIDENCE,
         )
+    elif DETECTOR_TYPE == "opencv":
+        from .opencv_detector import OpenCVDetector
+        return OpenCVDetector(
+            min_area=400,
+            max_area=100000,
+            min_confidence=0.3,
+        )
     elif DETECTOR_TYPE == "omniparser":
         from .sidecar_client import SidecarDetector
         return SidecarDetector(

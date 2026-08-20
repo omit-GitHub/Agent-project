@@ -1,0 +1,392 @@
+[
+  {
+    "filename": "screen_20260819_171553_033.png",
+    "timestamp": "20260819_171553",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "grid",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "small_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_170037_009.png",
+    "timestamp": "20260819_170037",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "grid",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_172446_056.png",
+    "timestamp": "20260819_172446",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "grid",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_172258_052.png",
+    "timestamp": "20260819_172258",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "grid",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_172156_049.png",
+    "timestamp": "20260819_172156",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "grid",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171805_038.png",
+    "timestamp": "20260819_171805",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "grid",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_152134_098.png",
+    "timestamp": "20260820_152134",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "search",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "small_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_165634_001.png",
+    "timestamp": "20260819_165634",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "search",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_151725_092.png",
+    "timestamp": "20260820_151725",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "search",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "small_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_172504_057.png",
+    "timestamp": "20260819_172504",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "search",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "small_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171128_017.png",
+    "timestamp": "20260819_171128",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "search",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_151715_091.png",
+    "timestamp": "20260820_151715",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "search",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "small_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_165732_003.png",
+    "timestamp": "20260819_165732",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "player",
+    "control_bar_visible": "visible",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_165843_004.png",
+    "timestamp": "20260819_165843",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "player",
+    "control_bar_visible": "hidden",
+    "tags": [
+      "none"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_170007_008.png",
+    "timestamp": "20260819_170007",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "player",
+    "control_bar_visible": "visible",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171720_036.png",
+    "timestamp": "20260819_171720",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "player",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "small_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171040_015.png",
+    "timestamp": "20260819_171040",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "player",
+    "control_bar_visible": "visible",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171111_016.png",
+    "timestamp": "20260819_171111",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "player",
+    "control_bar_visible": "visible",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_165920_006.png",
+    "timestamp": "20260819_165920",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "detail",
+    "control_bar_visible": "visible",
+    "tags": [
+      "none"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_103315_062.png",
+    "timestamp": "20260820_103315",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "detail",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "none"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_152241_101.png",
+    "timestamp": "20260820_152241",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "list",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "pure_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171331_024.png",
+    "timestamp": "20260819_171331",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "list",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171230_021.png",
+    "timestamp": "20260819_171230",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "list",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171344_025.png",
+    "timestamp": "20260819_171344",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "list",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171247_022.png",
+    "timestamp": "20260819_171247",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "list",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "dark_theme"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_171217_020.png",
+    "timestamp": "20260819_171217",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "list",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "small_icon"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260819_172553_059.png",
+    "timestamp": "20260819_172553",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "overlay",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "ad"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_103257_061.png",
+    "timestamp": "20260820_103257",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "overlay",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "ad"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_151745_093.png",
+    "timestamp": "20260820_151745",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "overlay",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "ad"
+    ],
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "filename": "screen_20260820_152208_099.png",
+    "timestamp": "20260820_152208",
+    "package": "unknown",
+    "activity": "unknown",
+    "page_type": "overlay",
+    "control_bar_visible": "unknown",
+    "tags": [
+      "ad"
+    ],
+    "width": 1280,
+    "height": 800
+  }
+]

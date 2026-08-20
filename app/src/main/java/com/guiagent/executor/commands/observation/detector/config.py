@@ -1,7 +1,7 @@
 # Visual Detector 配置
 
-# Detector 类型：mock / omniparser / custom
-DETECTOR_TYPE = "mock"
+# Detector 类型：mock / opencv / omniparser / custom
+DETECTOR_TYPE = "opencv"
 
 # Mock Detector 配置
 MOCK_GRID_SIZE = 200

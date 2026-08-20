@@ -1,0 +1,4778 @@
+[
+  {
+    "screenshot": "screen_20260819_171553_033.png",
+    "page_type": "grid",
+    "annotations": [
+      {
+        "bbox": [
+          951,
+          417,
+          973,
+          441
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          465,
+          556,
+          487,
+          580
+        ],
+        "kind": "icon",
+        "confidence": 0.9488636363636364,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1215,
+          101,
+          1237,
+          125
+        ],
+        "kind": "icon",
+        "confidence": 0.9488636363636364,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          465,
+          101,
+          487,
+          125
+        ],
+        "kind": "icon",
+        "confidence": 0.9488636363636364,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          839,
+          129,
+          867,
+          157
+        ],
+        "kind": "icon",
+        "confidence": 0.9459183673469387,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          806,
+          24,
+          838,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.943359375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          919,
+          592,
+          950,
+          623
+        ],
+        "kind": "icon",
+        "confidence": 0.941519250780437,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          470,
+          330,
+          507,
+          405
+        ],
+        "kind": "unknown",
+        "confidence": 0.924972972972973,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          20,
+          92,
+          61
+        ],
+        "kind": "text_button",
+        "confidence": 0.917960088691796,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1084,
+          604,
+          1119,
+          623
+        ],
+        "kind": "unknown",
+        "confidence": 0.8327819548872181,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1192,
+          642,
+          1233,
+          664
+        ],
+        "kind": "unknown",
+        "confidence": 0.8215077605321507,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          606,
+          24,
+          638,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7974609375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          956,
+          24,
+          988,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7904296875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          404,
+          23,
+          436,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7528409090909091,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          558,
+          554,
+          720,
+          643
+        ],
+        "kind": "text_button",
+        "confidence": 0.68347898460258,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          805,
+          118,
+          837,
+          172
+        ],
+        "kind": "unknown",
+        "confidence": 0.6833333333333332,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          548,
+          211,
+          592,
+          229
+        ],
+        "kind": "menu_item",
+        "confidence": 0.6106060606060606,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1106,
+          24,
+          1137,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.558266129032258,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          112,
+          20,
+          150,
+          61
+        ],
+        "kind": "icon",
+        "confidence": 0.4744544287548138,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          618,
+          660,
+          663,
+          709
+        ],
+        "kind": "icon",
+        "confidence": 0.34122448979591835,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_170037_009.png",
+    "page_type": "grid",
+    "annotations": [
+      {
+        "bbox": [
+          185,
+          506,
+          406,
+          570
+        ],
+        "kind": "menu_item",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          700,
+          401,
+          832,
+          463
+        ],
+        "kind": "text_button",
+        "confidence": 0.9431818181818181,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          54,
+          449,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.9017835909631391,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8104065040650407,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.7632183908045977,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          53,
+          682,
+          86,
+          722
+        ],
+        "kind": "icon",
+        "confidence": 0.7454545454545455,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          478,
+          524,
+          537,
+          548
+        ],
+        "kind": "menu_item",
+        "confidence": 0.5300847457627118,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_172446_056.png",
+    "page_type": "grid",
+    "annotations": [
+      {
+        "bbox": [
+          23,
+          509,
+          68,
+          553
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          439,
+          225,
+          484,
+          270
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          806,
+          24,
+          838,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.943359375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          232,
+          319,
+          266,
+          353
+        ],
+        "kind": "icon",
+        "confidence": 0.923356401384083,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          20,
+          92,
+          61
+        ],
+        "kind": "text_button",
+        "confidence": 0.917960088691796,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          473,
+          173,
+          502,
+          204
+        ],
+        "kind": "icon",
+        "confidence": 0.8763070077864293,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1165,
+          80,
+          1197,
+          114
+        ],
+        "kind": "icon",
+        "confidence": 0.8608455882352941,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          573,
+          525,
+          597,
+          621
+        ],
+        "kind": "unknown",
+        "confidence": 0.8442708333333333,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1211,
+          517,
+          1235,
+          541
+        ],
+        "kind": "icon",
+        "confidence": 0.8406250000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          795,
+          517,
+          819,
+          541
+        ],
+        "kind": "icon",
+        "confidence": 0.8406250000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          379,
+          517,
+          403,
+          541
+        ],
+        "kind": "icon",
+        "confidence": 0.8406250000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1211,
+          233,
+          1235,
+          257
+        ],
+        "kind": "icon",
+        "confidence": 0.8406250000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          795,
+          233,
+          819,
+          257
+        ],
+        "kind": "icon",
+        "confidence": 0.8406250000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          379,
+          233,
+          403,
+          257
+        ],
+        "kind": "icon",
+        "confidence": 0.8406250000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          606,
+          24,
+          638,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7974609375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          956,
+          24,
+          988,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7904296875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          774,
+          401,
+          796,
+          430
+        ],
+        "kind": "icon",
+        "confidence": 0.7617554858934169,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          404,
+          23,
+          436,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7528409090909091,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          93,
+          84,
+          120,
+          113
+        ],
+        "kind": "icon",
+        "confidence": 0.7149425287356322,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          232,
+          84,
+          260,
+          114
+        ],
+        "kind": "icon",
+        "confidence": 0.6857142857142856,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          777,
+          84,
+          805,
+          114
+        ],
+        "kind": "icon",
+        "confidence": 0.6842857142857143,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          57,
+          172,
+          120,
+          204
+        ],
+        "kind": "text_button",
+        "confidence": 0.6800595238095238,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          206,
+          313,
+          234,
+          356
+        ],
+        "kind": "unknown",
+        "confidence": 0.6303986710963455,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1106,
+          24,
+          1137,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.558266129032258,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          112,
+          20,
+          150,
+          61
+        ],
+        "kind": "icon",
+        "confidence": 0.4744544287548138,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          499,
+          600,
+          577,
+          658
+        ],
+        "kind": "text_button",
+        "confidence": 0.4672413793103448,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          320,
+          173,
+          376,
+          205
+        ],
+        "kind": "unknown",
+        "confidence": 0.3709821428571428,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          303,
+          664,
+          357,
+          734
+        ],
+        "kind": "text_button",
+        "confidence": 0.3685714285714286,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          719,
+          380,
+          765,
+          450
+        ],
+        "kind": "unknown",
+        "confidence": 0.3531055900621118,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_172258_052.png",
+    "page_type": "grid",
+    "annotations": [
+      {
+        "bbox": [
+          451,
+          489,
+          473,
+          512
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          806,
+          24,
+          838,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.943359375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          20,
+          92,
+          61
+        ],
+        "kind": "text_button",
+        "confidence": 0.917960088691796,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          666,
+          635,
+          690,
+          660
+        ],
+        "kind": "icon",
+        "confidence": 0.856,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          663,
+          103,
+          697,
+          137
+        ],
+        "kind": "icon",
+        "confidence": 0.8060553633217994,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          606,
+          24,
+          638,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7974609375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          956,
+          24,
+          988,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7904296875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          404,
+          23,
+          436,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7528409090909091,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          89,
+          107,
+          116,
+          136
+        ],
+        "kind": "icon",
+        "confidence": 0.7149425287356322,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          228,
+          107,
+          256,
+          137
+        ],
+        "kind": "icon",
+        "confidence": 0.6857142857142856,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          781,
+          107,
+          809,
+          137
+        ],
+        "kind": "icon",
+        "confidence": 0.6842857142857143,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          442,
+          444,
+          499,
+          463
+        ],
+        "kind": "menu_item",
+        "confidence": 0.6210526315789474,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1023,
+          392,
+          1046,
+          475
+        ],
+        "kind": "unknown",
+        "confidence": 0.5792561550550026,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1106,
+          24,
+          1137,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.558266129032258,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1192,
+          444,
+          1248,
+          463
+        ],
+        "kind": "menu_item",
+        "confidence": 0.5357142857142857,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          901,
+          201,
+          977,
+          231
+        ],
+        "kind": "text_button",
+        "confidence": 0.5328947368421053,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          112,
+          20,
+          150,
+          61
+        ],
+        "kind": "icon",
+        "confidence": 0.4744544287548138,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          942,
+          444,
+          1006,
+          475
+        ],
+        "kind": "menu_item",
+        "confidence": 0.34778225806451607,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_172156_049.png",
+    "page_type": "grid",
+    "annotations": [
+      {
+        "bbox": [
+          901,
+          296,
+          933,
+          326
+        ],
+        "kind": "icon",
+        "confidence": 0.965625,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          932,
+          332,
+          955,
+          356
+        ],
+        "kind": "icon",
+        "confidence": 0.9608695652173913,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          383,
+          220,
+          405,
+          244
+        ],
+        "kind": "icon",
+        "confidence": 0.9488636363636364,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          806,
+          24,
+          838,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.943359375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          20,
+          92,
+          61
+        ],
+        "kind": "text_button",
+        "confidence": 0.917960088691796,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          936,
+          574,
+          959,
+          598
+        ],
+        "kind": "icon",
+        "confidence": 0.8804347826086957,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          186,
+          574,
+          209,
+          598
+        ],
+        "kind": "icon",
+        "confidence": 0.8804347826086957,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          57,
+          160,
+          88,
+          192
+        ],
+        "kind": "icon",
+        "confidence": 0.847983870967742,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          902,
+          377,
+          924,
+          432
+        ],
+        "kind": "unknown",
+        "confidence": 0.8315702479338842,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          146,
+          219,
+          185,
+          263
+        ],
+        "kind": "text_button",
+        "confidence": 0.8293706293706293,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          606,
+          24,
+          638,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7974609375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          956,
+          24,
+          988,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7904296875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          404,
+          23,
+          436,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7528409090909091,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          495,
+          92,
+          522,
+          121
+        ],
+        "kind": "icon",
+        "confidence": 0.7149425287356322,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          355,
+          92,
+          382,
+          121
+        ],
+        "kind": "icon",
+        "confidence": 0.7149425287356322,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          602,
+          88,
+          635,
+          122
+        ],
+        "kind": "icon",
+        "confidence": 0.6946524064171122,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          376,
+          671,
+          411,
+          716
+        ],
+        "kind": "icon",
+        "confidence": 0.6792380952380952,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          932,
+          367,
+          952,
+          431
+        ],
+        "kind": "unknown",
+        "confidence": 0.60046875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1104,
+          251,
+          1129,
+          288
+        ],
+        "kind": "unknown",
+        "confidence": 0.5766486486486486,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          830,
+          699,
+          855,
+          742
+        ],
+        "kind": "unknown",
+        "confidence": 0.573767441860465,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          42,
+          280,
+          89,
+          321
+        ],
+        "kind": "icon",
+        "confidence": 0.5713544369486248,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1106,
+          24,
+          1137,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.558266129032258,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          657,
+          717,
+          707,
+          741
+        ],
+        "kind": "menu_item",
+        "confidence": 0.48949999999999994,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          165,
+          279,
+          204,
+          319
+        ],
+        "kind": "icon",
+        "confidence": 0.4769230769230769,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          112,
+          20,
+          150,
+          61
+        ],
+        "kind": "icon",
+        "confidence": 0.4744544287548138,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1204,
+          566,
+          1228,
+          639
+        ],
+        "kind": "unknown",
+        "confidence": 0.32226027397260276,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171805_038.png",
+    "page_type": "grid",
+    "annotations": [
+      {
+        "bbox": [
+          439,
+          249,
+          841,
+          475
+        ],
+        "kind": "card",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          153,
+          185,
+          271,
+          230
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          806,
+          24,
+          838,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.943359375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          20,
+          92,
+          61
+        ],
+        "kind": "text_button",
+        "confidence": 0.917960088691796,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1123,
+          195,
+          1148,
+          221
+        ],
+        "kind": "icon",
+        "confidence": 0.8778461538461538,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          851,
+          496,
+          875,
+          520
+        ],
+        "kind": "icon",
+        "confidence": 0.8354166666666667,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          227,
+          496,
+          251,
+          520
+        ],
+        "kind": "icon",
+        "confidence": 0.8354166666666667,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          75,
+          531,
+          144,
+          592
+        ],
+        "kind": "text_button",
+        "confidence": 0.8270848182466144,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          606,
+          24,
+          638,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7974609375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          956,
+          24,
+          988,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7904296875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          507,
+          194,
+          533,
+          221
+        ],
+        "kind": "icon",
+        "confidence": 0.7794871794871795,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          404,
+          23,
+          436,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7528409090909091,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          715,
+          107,
+          742,
+          136
+        ],
+        "kind": "icon",
+        "confidence": 0.7149425287356322,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          575,
+          107,
+          602,
+          136
+        ],
+        "kind": "icon",
+        "confidence": 0.7149425287356322,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          206,
+          317,
+          250,
+          342
+        ],
+        "kind": "unknown",
+        "confidence": 0.7047272727272728,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          854,
+          107,
+          882,
+          137
+        ],
+        "kind": "icon",
+        "confidence": 0.6857142857142856,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          647,
+          606,
+          679,
+          646
+        ],
+        "kind": "icon",
+        "confidence": 0.5896874999999999,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1106,
+          24,
+          1137,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.558266129032258,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          112,
+          20,
+          150,
+          61
+        ],
+        "kind": "icon",
+        "confidence": 0.4744544287548138,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1002,
+          534,
+          1048,
+          568
+        ],
+        "kind": "unknown",
+        "confidence": 0.44117647058823534,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          404,
+          558,
+          467,
+          586
+        ],
+        "kind": "menu_item",
+        "confidence": 0.42993197278911566,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_152134_098.png",
+    "page_type": "search",
+    "annotations": [
+      {
+        "bbox": [
+          639,
+          548,
+          755,
+          633
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          570,
+          746,
+          589,
+          775
+        ],
+        "kind": "unknown",
+        "confidence": 0.9876588021778584,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          400,
+          662,
+          420,
+          691
+        ],
+        "kind": "unknown",
+        "confidence": 0.9724137931034482,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1050,
+          494,
+          1068,
+          523
+        ],
+        "kind": "unknown",
+        "confidence": 0.960919540229885,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1032,
+          578,
+          1054,
+          607
+        ],
+        "kind": "icon",
+        "confidence": 0.9413793103448275,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          99,
+          63,
+          125,
+          89
+        ],
+        "kind": "icon",
+        "confidence": 0.8866863905325443,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1125,
+          63,
+          1151,
+          90
+        ],
+        "kind": "icon",
+        "confidence": 0.8564102564102564,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          109,
+          578,
+          132,
+          611
+        ],
+        "kind": "unknown",
+        "confidence": 0.83399209486166,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          201,
+          60,
+          254,
+          88
+        ],
+        "kind": "unknown",
+        "confidence": 0.6796495956873315,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_165634_001.png",
+    "page_type": "search",
+    "annotations": [
+      {
+        "bbox": [
+          29,
+          689,
+          110,
+          770
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          639,
+          548,
+          755,
+          633
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1050,
+          494,
+          1068,
+          523
+        ],
+        "kind": "unknown",
+        "confidence": 0.960919540229885,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_151725_092.png",
+    "page_type": "search",
+    "annotations": [
+      {
+        "bbox": [
+          639,
+          548,
+          755,
+          633
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          570,
+          746,
+          589,
+          775
+        ],
+        "kind": "unknown",
+        "confidence": 0.9876588021778584,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          400,
+          662,
+          420,
+          691
+        ],
+        "kind": "unknown",
+        "confidence": 0.9724137931034482,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1050,
+          494,
+          1068,
+          523
+        ],
+        "kind": "unknown",
+        "confidence": 0.960919540229885,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1032,
+          578,
+          1054,
+          607
+        ],
+        "kind": "icon",
+        "confidence": 0.9413793103448275,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          109,
+          578,
+          132,
+          611
+        ],
+        "kind": "unknown",
+        "confidence": 0.83399209486166,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          147,
+          43,
+          171,
+          69
+        ],
+        "kind": "icon",
+        "confidence": 0.8076923076923077,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          995,
+          312,
+          1020,
+          339
+        ],
+        "kind": "icon",
+        "confidence": 0.7662222222222221,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_172504_057.png",
+    "page_type": "search",
+    "annotations": [
+      {
+        "bbox": [
+          639,
+          548,
+          755,
+          633
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          637,
+          418,
+          665,
+          447
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          206,
+          418,
+          306,
+          446
+        ],
+        "kind": "menu_item",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          211,
+          345,
+          311,
+          373
+        ],
+        "kind": "menu_item",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          179,
+          345,
+          207,
+          374
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          696,
+          272,
+          796,
+          300
+        ],
+        "kind": "menu_item",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          664,
+          272,
+          692,
+          301
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          233,
+          272,
+          261,
+          301
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          707,
+          199,
+          735,
+          228
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          152,
+          199,
+          181,
+          227
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1050,
+          494,
+          1068,
+          523
+        ],
+        "kind": "unknown",
+        "confidence": 0.960919540229885,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          34,
+          100,
+          75
+        ],
+        "kind": "text_button",
+        "confidence": 0.9226164079822615,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1188,
+          41,
+          1215,
+          69
+        ],
+        "kind": "icon",
+        "confidence": 0.8492063492063492,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          607,
+          345,
+          633,
+          371
+        ],
+        "kind": "icon",
+        "confidence": 0.815680473372781,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          954,
+          39,
+          986,
+          71
+        ],
+        "kind": "icon",
+        "confidence": 0.7904296875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          371,
+          124,
+          396,
+          153
+        ],
+        "kind": "icon",
+        "confidence": 0.7878620689655172,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          247,
+          124,
+          272,
+          153
+        ],
+        "kind": "icon",
+        "confidence": 0.7878620689655172,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          96,
+          417,
+          120,
+          444
+        ],
+        "kind": "icon",
+        "confidence": 0.7861111111111111,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          553,
+          417,
+          579,
+          444
+        ],
+        "kind": "icon",
+        "confidence": 0.7675213675213676,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          785,
+          350,
+          822,
+          369
+        ],
+        "kind": "unknown",
+        "confidence": 0.7527738264580369,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          308,
+          277,
+          345,
+          296
+        ],
+        "kind": "unknown",
+        "confidence": 0.7527738264580369,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          782,
+          204,
+          819,
+          223
+        ],
+        "kind": "unknown",
+        "confidence": 0.7527738264580369,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          276,
+          204,
+          313,
+          223
+        ],
+        "kind": "unknown",
+        "confidence": 0.7527738264580369,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          560,
+          125,
+          586,
+          153
+        ],
+        "kind": "icon",
+        "confidence": 0.7302197802197802,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1036,
+          125,
+          1066,
+          156
+        ],
+        "kind": "icon",
+        "confidence": 0.6070967741935483,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          940,
+          124,
+          970,
+          156
+        ],
+        "kind": "icon",
+        "confidence": 0.5237499999999999,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          120,
+          34,
+          159,
+          75
+        ],
+        "kind": "icon",
+        "confidence": 0.47317073170731705,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171128_017.png",
+    "page_type": "search",
+    "annotations": [
+      {
+        "bbox": [
+          1184,
+          354,
+          1234,
+          384
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          915,
+          354,
+          965,
+          384
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          646,
+          354,
+          696,
+          384
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          369,
+          605,
+          388,
+          656
+        ],
+        "kind": "unknown",
+        "confidence": 0.9195046439628483,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          55,
+          450,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.8854591836734693,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          390,
+          605,
+          405,
+          655
+        ],
+        "kind": "unknown",
+        "confidence": 0.8704000000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          252,
+          605,
+          270,
+          655
+        ],
+        "kind": "unknown",
+        "confidence": 0.8066666666666668,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          760,
+          734,
+          793,
+          753
+        ],
+        "kind": "unknown",
+        "confidence": 0.7894736842105263,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          188,
+          175,
+          232,
+          199
+        ],
+        "kind": "unknown",
+        "confidence": 0.7511363636363636,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          53,
+          682,
+          86,
+          722
+        ],
+        "kind": "icon",
+        "confidence": 0.7454545454545455,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          378,
+          437,
+          408,
+          466
+        ],
+        "kind": "icon",
+        "confidence": 0.7048275862068966,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          456,
+          704,
+          493,
+          723
+        ],
+        "kind": "unknown",
+        "confidence": 0.6972972972972972,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          292,
+          735,
+          340,
+          753
+        ],
+        "kind": "menu_item",
+        "confidence": 0.6666666666666666,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          211,
+          605,
+          252,
+          655
+        ],
+        "kind": "text_button",
+        "confidence": 0.648,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          539,
+          642,
+          573,
+          671
+        ],
+        "kind": "icon",
+        "confidence": 0.6310344827586206,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          563,
+          735,
+          612,
+          753
+        ],
+        "kind": "menu_item",
+        "confidence": 0.5945578231292517,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          891,
+          416,
+          918,
+          455
+        ],
+        "kind": "unknown",
+        "confidence": 0.547008547008547,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          623,
+          642,
+          655,
+          671
+        ],
+        "kind": "icon",
+        "confidence": 0.524353448275862,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          187,
+          704,
+          243,
+          723
+        ],
+        "kind": "menu_item",
+        "confidence": 0.46522556390977443,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          212,
+          735,
+          291,
+          753
+        ],
+        "kind": "menu_item",
+        "confidence": 0.46455696202531643,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_151715_091.png",
+    "page_type": "search",
+    "annotations": [
+      {
+        "bbox": [
+          147,
+          43,
+          171,
+          69
+        ],
+        "kind": "icon",
+        "confidence": 0.8076923076923077,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          995,
+          312,
+          1020,
+          339
+        ],
+        "kind": "icon",
+        "confidence": 0.7662222222222221,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_165732_003.png",
+    "page_type": "player",
+    "annotations": [
+      {
+        "bbox": [
+          1110,
+          735,
+          1167,
+          763
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          490,
+          246,
+          762,
+          472
+        ],
+        "kind": "card",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          904,
+          736,
+          928,
+          761
+        ],
+        "kind": "icon",
+        "confidence": 0.8270000000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          805,
+          735,
+          854,
+          761
+        ],
+        "kind": "unknown",
+        "confidence": 0.8039246467817897,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1004,
+          58,
+          1118,
+          134
+        ],
+        "kind": "text_button",
+        "confidence": 0.7778393351800554,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1003,
+          735,
+          1028,
+          761
+        ],
+        "kind": "icon",
+        "confidence": 0.7486153846153846,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          115,
+          737,
+          142,
+          764
+        ],
+        "kind": "icon",
+        "confidence": 0.7176954732510288,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_165843_004.png",
+    "page_type": "player",
+    "annotations": [
+      {
+        "bbox": [
+          490,
+          246,
+          762,
+          472
+        ],
+        "kind": "card",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1043,
+          98,
+          1070,
+          126
+        ],
+        "kind": "icon",
+        "confidence": 0.7063492063492063,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1034,
+          90,
+          1083,
+          134
+        ],
+        "kind": "icon",
+        "confidence": 0.42578849721706863,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_170007_008.png",
+    "page_type": "player",
+    "annotations": [
+      {
+        "bbox": [
+          504,
+          246,
+          762,
+          472
+        ],
+        "kind": "card",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1091,
+          143,
+          1124,
+          164
+        ],
+        "kind": "unknown",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          711,
+          87,
+          735,
+          113
+        ],
+        "kind": "icon",
+        "confidence": 0.8028846153846153,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171720_036.png",
+    "page_type": "player",
+    "annotations": [
+      {
+        "bbox": [
+          836,
+          512,
+          946,
+          540
+        ],
+        "kind": "menu_item",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          806,
+          24,
+          838,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.943359375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          47,
+          511,
+          233,
+          587
+        ],
+        "kind": "text_button",
+        "confidence": 0.9193548387096774,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          20,
+          92,
+          61
+        ],
+        "kind": "text_button",
+        "confidence": 0.917960088691796,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          344,
+          157,
+          387,
+          200
+        ],
+        "kind": "text_button",
+        "confidence": 0.8930232558139535,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          509,
+          357,
+          536,
+          384
+        ],
+        "kind": "icon",
+        "confidence": 0.8921810699588477,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          310,
+          247,
+          341,
+          289
+        ],
+        "kind": "icon",
+        "confidence": 0.847926267281106,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          745,
+          357,
+          771,
+          385
+        ],
+        "kind": "icon",
+        "confidence": 0.8423076923076922,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          606,
+          24,
+          638,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7974609375,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          956,
+          24,
+          988,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7904296875,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          52,
+          102,
+          162,
+          212
+        ],
+        "kind": "text_button",
+        "confidence": 0.7895206611570248,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          301,
+          356,
+          356,
+          385
+        ],
+        "kind": "text_button",
+        "confidence": 0.7790595611285267,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1163,
+          357,
+          1189,
+          385
+        ],
+        "kind": "icon",
+        "confidence": 0.7681318681318681,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          404,
+          23,
+          436,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.7528409090909091,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          706,
+          111,
+          741,
+          147
+        ],
+        "kind": "icon",
+        "confidence": 0.7438095238095238,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          792,
+          539,
+          836,
+          578
+        ],
+        "kind": "icon",
+        "confidence": 0.6814685314685315,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          828,
+          599,
+          871,
+          626
+        ],
+        "kind": "unknown",
+        "confidence": 0.6051679586563307,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1106,
+          24,
+          1137,
+          56
+        ],
+        "kind": "icon",
+        "confidence": 0.558266129032258,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          112,
+          20,
+          150,
+          61
+        ],
+        "kind": "icon",
+        "confidence": 0.4744544287548138,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          193,
+          776,
+          249,
+          795
+        ],
+        "kind": "menu_item",
+        "confidence": 0.4674812030075188,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          355,
+          203,
+          387,
+          240
+        ],
+        "kind": "icon",
+        "confidence": 0.41351351351351345,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          571,
+          552,
+          694,
+          656
+        ],
+        "kind": "text_button",
+        "confidence": 0.4106941838649156,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          93,
+          356,
+          148,
+          385
+        ],
+        "kind": "unknown",
+        "confidence": 0.39009404388714736,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171040_015.png",
+    "page_type": "player",
+    "annotations": [
+      {
+        "bbox": [
+          724,
+          629,
+          800,
+          722
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          724,
+          323,
+          800,
+          429
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          684,
+          740,
+          736,
+          792
+        ],
+        "kind": "text_button",
+        "confidence": 0.9104289940828403,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          54,
+          449,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.9017835909631391,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          379,
+          382,
+          414,
+          399
+        ],
+        "kind": "menu_item",
+        "confidence": 0.8752941176470588,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          277,
+          351,
+          317,
+          372
+        ],
+        "kind": "unknown",
+        "confidence": 0.8607142857142857,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          926,
+          352,
+          956,
+          372
+        ],
+        "kind": "unknown",
+        "confidence": 0.829,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          957,
+          472,
+          996,
+          492
+        ],
+        "kind": "unknown",
+        "confidence": 0.823076923076923,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          458,
+          472,
+          497,
+          492
+        ],
+        "kind": "unknown",
+        "confidence": 0.823076923076923,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          53,
+          682,
+          86,
+          722
+        ],
+        "kind": "icon",
+        "confidence": 0.7454545454545455,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          290,
+          502,
+          329,
+          520
+        ],
+        "kind": "menu_item",
+        "confidence": 0.717948717948718,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          239,
+          77,
+          283,
+          101
+        ],
+        "kind": "unknown",
+        "confidence": 0.7119318181818182,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          285,
+          382,
+          328,
+          399
+        ],
+        "kind": "menu_item",
+        "confidence": 0.6746922024623803,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          897,
+          657,
+          936,
+          678
+        ],
+        "kind": "unknown",
+        "confidence": 0.649084249084249,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          441,
+          77,
+          484,
+          101
+        ],
+        "kind": "unknown",
+        "confidence": 0.6319767441860465,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          417,
+          351,
+          477,
+          372
+        ],
+        "kind": "menu_item",
+        "confidence": 0.6042857142857142,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          587,
+          77,
+          630,
+          101
+        ],
+        "kind": "unknown",
+        "confidence": 0.5296511627906977,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1106,
+          233,
+          1170,
+          254
+        ],
+        "kind": "menu_item",
+        "confidence": 0.40178571428571425,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          834,
+          265,
+          917,
+          283
+        ],
+        "kind": "menu_item",
+        "confidence": 0.38032128514056224,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          191,
+          689,
+          244,
+          718
+        ],
+        "kind": "unknown",
+        "confidence": 0.31854261548471047,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171111_016.png",
+    "page_type": "player",
+    "annotations": [
+      {
+        "bbox": [
+          185,
+          340,
+          261,
+          446
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          684,
+          740,
+          736,
+          792
+        ],
+        "kind": "text_button",
+        "confidence": 0.9104289940828403,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          54,
+          449,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.9017835909631391,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          856,
+          368,
+          896,
+          389
+        ],
+        "kind": "unknown",
+        "confidence": 0.8214285714285714,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          833,
+          585,
+          866,
+          603
+        ],
+        "kind": "unknown",
+        "confidence": 0.8181818181818181,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          298,
+          674,
+          337,
+          695
+        ],
+        "kind": "unknown",
+        "confidence": 0.7457875457875458,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          53,
+          682,
+          86,
+          722
+        ],
+        "kind": "icon",
+        "confidence": 0.7454545454545455,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          918,
+          584,
+          969,
+          603
+        ],
+        "kind": "menu_item",
+        "confidence": 0.6885448916408669,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          414,
+          159,
+          481,
+          176
+        ],
+        "kind": "menu_item",
+        "confidence": 0.6510974539069359,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          278,
+          554,
+          317,
+          575
+        ],
+        "kind": "unknown",
+        "confidence": 0.6058608058608058,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          901,
+          399,
+          952,
+          416
+        ],
+        "kind": "menu_item",
+        "confidence": 0.5799307958477509,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          901,
+          279,
+          986,
+          297
+        ],
+        "kind": "menu_item",
+        "confidence": 0.5505882352941176,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_165920_006.png",
+    "page_type": "detail",
+    "annotations": [
+      {
+        "bbox": [
+          1035,
+          133,
+          1058,
+          157
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1038,
+          514,
+          1061,
+          539
+        ],
+        "kind": "icon",
+        "confidence": 0.9787826086956521,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          910,
+          207,
+          933,
+          231
+        ],
+        "kind": "icon",
+        "confidence": 0.9456521739130433,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          988,
+          694,
+          1011,
+          719
+        ],
+        "kind": "icon",
+        "confidence": 0.9412173913043478,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          937,
+          694,
+          960,
+          719
+        ],
+        "kind": "icon",
+        "confidence": 0.8963478260869565,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          885,
+          243,
+          908,
+          268
+        ],
+        "kind": "icon",
+        "confidence": 0.8692173913043477,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1160,
+          243,
+          1183,
+          268
+        ],
+        "kind": "icon",
+        "confidence": 0.8671304347826087,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          786,
+          649,
+          809,
+          674
+        ],
+        "kind": "icon",
+        "confidence": 0.8546086956521738,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1210,
+          243,
+          1233,
+          268
+        ],
+        "kind": "icon",
+        "confidence": 0.8431304347826086,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          752,
+          90,
+          776,
+          115
+        ],
+        "kind": "icon",
+        "confidence": 0.803,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          884,
+          169,
+          933,
+          194
+        ],
+        "kind": "unknown",
+        "confidence": 0.697469387755102,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          678,
+          34,
+          711,
+          67
+        ],
+        "kind": "icon",
+        "confidence": 0.5724517906336088,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          887,
+          604,
+          961,
+          629
+        ],
+        "kind": "menu_item",
+        "confidence": 0.5062702702702703,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          644,
+          34,
+          678,
+          68
+        ],
+        "kind": "icon",
+        "confidence": 0.4858131487889273,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          660,
+          379,
+          683,
+          438
+        ],
+        "kind": "unknown",
+        "confidence": 0.4160648489314665,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_103315_062.png",
+    "page_type": "detail",
+    "annotations": [
+      {
+        "bbox": [
+          1113,
+          308,
+          1233,
+          467
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          916,
+          104,
+          945,
+          135
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          931,
+          228,
+          959,
+          256
+        ],
+        "kind": "icon",
+        "confidence": 0.9099489795918367,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          395,
+          669,
+          436,
+          712
+        ],
+        "kind": "text_button",
+        "confidence": 0.8712422007941009,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          885,
+          491,
+          914,
+          519
+        ],
+        "kind": "icon",
+        "confidence": 0.8541871921182266,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          803,
+          42,
+          837,
+          78
+        ],
+        "kind": "icon",
+        "confidence": 0.8524509803921568,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          336,
+          669,
+          379,
+          713
+        ],
+        "kind": "text_button",
+        "confidence": 0.8321353065539111,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          857,
+          491,
+          884,
+          520
+        ],
+        "kind": "icon",
+        "confidence": 0.8068965517241379,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          602,
+          673,
+          630,
+          708
+        ],
+        "kind": "icon",
+        "confidence": 0.8014285714285714,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1087,
+          185,
+          1112,
+          212
+        ],
+        "kind": "icon",
+        "confidence": 0.7848888888888889,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          765,
+          42,
+          801,
+          78
+        ],
+        "kind": "icon",
+        "confidence": 0.7435185185185186,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          758,
+          185,
+          783,
+          213
+        ],
+        "kind": "icon",
+        "confidence": 0.7037142857142856,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1173,
+          491,
+          1200,
+          520
+        ],
+        "kind": "icon",
+        "confidence": 0.6329501915708812,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          876,
+          101,
+          911,
+          137
+        ],
+        "kind": "icon",
+        "confidence": 0.5671428571428571,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          988,
+          100,
+          1021,
+          136
+        ],
+        "kind": "icon",
+        "confidence": 0.552020202020202,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          733,
+          42,
+          764,
+          78
+        ],
+        "kind": "icon",
+        "confidence": 0.47043010752688175,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_152241_101.png",
+    "page_type": "list",
+    "annotations": [
+      {
+        "bbox": [
+          118,
+          448,
+          156,
+          499
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          295,
+          137,
+          330,
+          162
+        ],
+        "kind": "unknown",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1183,
+          47,
+          1212,
+          76
+        ],
+        "kind": "icon",
+        "confidence": 0.9595719381688466,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          578,
+          136,
+          610,
+          164
+        ],
+        "kind": "icon",
+        "confidence": 0.8370535714285715,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          861,
+          82,
+          888,
+          122
+        ],
+        "kind": "unknown",
+        "confidence": 0.6950000000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1151,
+          47,
+          1181,
+          76
+        ],
+        "kind": "icon",
+        "confidence": 0.6220689655172413,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          793,
+          241,
+          817,
+          283
+        ],
+        "kind": "unknown",
+        "confidence": 0.48095238095238096,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          595,
+          95,
+          639,
+          121
+        ],
+        "kind": "unknown",
+        "confidence": 0.4368881118881119,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          749,
+          78,
+          791,
+          122
+        ],
+        "kind": "icon",
+        "confidence": 0.42272727272727273,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171331_024.png",
+    "page_type": "list",
+    "annotations": [
+      {
+        "bbox": [
+          720,
+          392,
+          853,
+          525
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          961,
+          391,
+          1095,
+          525
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          475,
+          391,
+          610,
+          525
+        ],
+        "kind": "text_button",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          237,
+          440,
+          259,
+          463
+        ],
+        "kind": "icon",
+        "confidence": 0.9664031620553359,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          43,
+          673,
+          97,
+          727
+        ],
+        "kind": "text_button",
+        "confidence": 0.9213991769547325,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          54,
+          449,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.9017835909631391,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          440,
+          199,
+          466
+        ],
+        "kind": "icon",
+        "confidence": 0.8840236686390532,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          185,
+          199,
+          211
+        ],
+        "kind": "icon",
+        "confidence": 0.8822485207100592,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          354,
+          199,
+          382
+        ],
+        "kind": "icon",
+        "confidence": 0.8653846153846153,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          475,
+          173,
+          517,
+          188
+        ],
+        "kind": "menu_item",
+        "confidence": 0.7790476190476191,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          825,
+          173,
+          880,
+          188
+        ],
+        "kind": "menu_item",
+        "confidence": 0.7621818181818182,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          166,
+          69,
+          212,
+          124
+        ],
+        "kind": "text_button",
+        "confidence": 0.7470355731225296,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          499,
+          556,
+          579,
+          572
+        ],
+        "kind": "menu_item",
+        "confidence": 0.3853125,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171230_021.png",
+    "page_type": "list",
+    "annotations": [
+      {
+        "bbox": [
+          237,
+          440,
+          259,
+          463
+        ],
+        "kind": "icon",
+        "confidence": 0.9664031620553359,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          43,
+          673,
+          97,
+          727
+        ],
+        "kind": "text_button",
+        "confidence": 0.9213991769547325,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          54,
+          449,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.9017835909631391,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          185,
+          199,
+          211
+        ],
+        "kind": "icon",
+        "confidence": 0.8840236686390532,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          440,
+          199,
+          466
+        ],
+        "kind": "icon",
+        "confidence": 0.8822485207100592,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          354,
+          199,
+          382
+        ],
+        "kind": "icon",
+        "confidence": 0.8653846153846153,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          166,
+          69,
+          212,
+          124
+        ],
+        "kind": "text_button",
+        "confidence": 0.7470355731225296,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171344_025.png",
+    "page_type": "list",
+    "annotations": [
+      {
+        "bbox": [
+          237,
+          440,
+          259,
+          463
+        ],
+        "kind": "icon",
+        "confidence": 0.9664031620553359,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          43,
+          673,
+          97,
+          727
+        ],
+        "kind": "text_button",
+        "confidence": 0.9213991769547325,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          54,
+          449,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.9017835909631391,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          440,
+          199,
+          466
+        ],
+        "kind": "icon",
+        "confidence": 0.8822485207100592,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          185,
+          199,
+          211
+        ],
+        "kind": "icon",
+        "confidence": 0.8822485207100592,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          354,
+          199,
+          382
+        ],
+        "kind": "icon",
+        "confidence": 0.8653846153846153,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          733,
+          87,
+          793,
+          140
+        ],
+        "kind": "text_button",
+        "confidence": 0.8273584905660377,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          662,
+          277,
+          706,
+          300
+        ],
+        "kind": "unknown",
+        "confidence": 0.7642292490118577,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          166,
+          69,
+          212,
+          124
+        ],
+        "kind": "text_button",
+        "confidence": 0.7470355731225296,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171247_022.png",
+    "page_type": "list",
+    "annotations": [
+      {
+        "bbox": [
+          237,
+          440,
+          259,
+          463
+        ],
+        "kind": "icon",
+        "confidence": 0.9664031620553359,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          43,
+          673,
+          97,
+          727
+        ],
+        "kind": "text_button",
+        "confidence": 0.9213991769547325,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          54,
+          449,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.9017835909631391,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          440,
+          199,
+          466
+        ],
+        "kind": "icon",
+        "confidence": 0.8822485207100592,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          185,
+          199,
+          211
+        ],
+        "kind": "icon",
+        "confidence": 0.8822485207100592,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          173,
+          354,
+          199,
+          382
+        ],
+        "kind": "icon",
+        "confidence": 0.8653846153846153,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          166,
+          69,
+          212,
+          124
+        ],
+        "kind": "text_button",
+        "confidence": 0.7470355731225296,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_171217_020.png",
+    "page_type": "list",
+    "annotations": [
+      {
+        "bbox": [
+          1148,
+          642,
+          1169,
+          665
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1182,
+          382,
+          1203,
+          405
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1094,
+          382,
+          1115,
+          405
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          918,
+          382,
+          939,
+          405
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          830,
+          382,
+          851,
+          405
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          654,
+          382,
+          675,
+          405
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          520,
+          382,
+          541,
+          405
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          386,
+          382,
+          407,
+          405
+        ],
+        "kind": "icon",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          55,
+          450,
+          83,
+          478
+        ],
+        "kind": "icon",
+        "confidence": 0.8854591836734693,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          48,
+          47,
+          93,
+          88
+        ],
+        "kind": "text_button",
+        "confidence": 0.8117073170731707,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          56,
+          256,
+          83,
+          285
+        ],
+        "kind": "icon",
+        "confidence": 0.8061302681992337,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          188,
+          122,
+          232,
+          146
+        ],
+        "kind": "unknown",
+        "confidence": 0.7511363636363636,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          53,
+          682,
+          86,
+          722
+        ],
+        "kind": "icon",
+        "confidence": 0.7454545454545455,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          918,
+          512,
+          963,
+          535
+        ],
+        "kind": "unknown",
+        "confidence": 0.6040579710144928,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260819_172553_059.png",
+    "page_type": "overlay",
+    "annotations": [
+      {
+        "bbox": [
+          74,
+          434,
+          455,
+          517
+        ],
+        "kind": "card",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1120,
+          28,
+          1143,
+          51
+        ],
+        "kind": "icon",
+        "confidence": 0.9345935727788279,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          226,
+          329,
+          282,
+          417
+        ],
+        "kind": "text_button",
+        "confidence": 0.8653003246753247,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          597,
+          407,
+          645,
+          457
+        ],
+        "kind": "text_button",
+        "confidence": 0.7817500000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          204,
+          377,
+          224,
+          417
+        ],
+        "kind": "unknown",
+        "confidence": 0.61275,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          90,
+          326,
+          137,
+          412
+        ],
+        "kind": "text_button",
+        "confidence": 0.5750618505690253,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          116,
+          327,
+          173,
+          412
+        ],
+        "kind": "text_button",
+        "confidence": 0.513312693498452,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1184,
+          89,
+          1247,
+          114
+        ],
+        "kind": "menu_item",
+        "confidence": 0.4403809523809524,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_103257_061.png",
+    "page_type": "overlay",
+    "annotations": [
+      {
+        "bbox": [
+          935,
+          74,
+          955,
+          102
+        ],
+        "kind": "icon",
+        "confidence": 0.8635714285714285,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1072,
+          393,
+          1142,
+          408
+        ],
+        "kind": "menu_item",
+        "confidence": 0.8268571428571428,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_151745_093.png",
+    "page_type": "overlay",
+    "annotations": [
+      {
+        "bbox": [
+          74,
+          434,
+          455,
+          517
+        ],
+        "kind": "card",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1120,
+          28,
+          1143,
+          51
+        ],
+        "kind": "icon",
+        "confidence": 0.9345935727788279,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          226,
+          329,
+          282,
+          417
+        ],
+        "kind": "text_button",
+        "confidence": 0.8653003246753247,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          597,
+          407,
+          645,
+          457
+        ],
+        "kind": "text_button",
+        "confidence": 0.7827500000000001,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          204,
+          377,
+          224,
+          417
+        ],
+        "kind": "unknown",
+        "confidence": 0.61275,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          90,
+          326,
+          137,
+          412
+        ],
+        "kind": "text_button",
+        "confidence": 0.5750618505690253,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          116,
+          327,
+          173,
+          412
+        ],
+        "kind": "text_button",
+        "confidence": 0.513312693498452,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          1184,
+          89,
+          1247,
+          114
+        ],
+        "kind": "menu_item",
+        "confidence": 0.43961904761904763,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  },
+  {
+    "screenshot": "screen_20260820_152208_099.png",
+    "page_type": "overlay",
+    "annotations": [
+      {
+        "bbox": [
+          510,
+          582,
+          755,
+          648
+        ],
+        "kind": "menu_item",
+        "confidence": 1.0,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          687,
+          237,
+          710,
+          261
+        ],
+        "kind": "icon",
+        "confidence": 0.9163043478260869,
+        "high_risk": false,
+        "label": null
+      },
+      {
+        "bbox": [
+          656,
+          312,
+          712,
+          396
+        ],
+        "kind": "text_button",
+        "confidence": 0.738265306122449,
+        "high_risk": false,
+        "label": null
+      }
+    ]
+  }
+]
