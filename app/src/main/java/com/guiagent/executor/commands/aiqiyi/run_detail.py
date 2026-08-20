@@ -1,36 +1,30 @@
 # -*- coding: utf-8 -*-
-"""爱奇艺打开/关闭详情页(电视剧简介)。
-
-包名: com.qiyi.video.speaker (中屏定制版)
+"""爱奇艺打开/关闭详情页(电视剧简介) — Phase 7 无 dump 版。
 
 策略 (自适应, 不依赖固定坐标):
   in (进入详情):
-    1. tap (640, 200) 唤出控制条(顶部, 比中心可靠)
-    2. dump UI 树, 子串匹配 id 含 "video_detail" 的节点
-       (兼容 video_detail1 / video_detail2 / 将来任何版本)
-    3. 用该节点 bounds 算中心, 直接 tap
-       (标题再长都不怕, 按钮被挤到哪就点到哪)
+    1. tap (640, 200) 唤出控制条
+    2. observe_screen() 获取候选列表
+    3. 匹配 text 含"简介"或"详情"的候选
+    4. 用候选 bbox 中心 tap
 
   out (退出详情):
     1. tap 屏幕左侧非详情页区域 (200, 400) 返回播放页
-       (详情页在右侧, 点击左侧空白区域即可关闭)
 
 用法:
   python aiqiyi/run-detail.py in              # 进入详情页
   python aiqiyi/run-detail.py out             # 退出详情页
-
-前置: 已在爱奇艺播放页。
-      设备已开 GUIAgent 无障碍, 且 adb forward tcp:8322 tcp:8322。
 """
 import json, os, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from send import send
 from common.utils import success, error
+from observation.screen.cmd_observe_screen import observe_screen
 
-# ── 坐标常量 ──
-WAKE_X, WAKE_Y = 640, 200        # 唤控制条(顶部)
-EXIT_X, EXIT_Y = 200, 400        # 退出详情:点左侧空白区域
+# ── 坐标常量 ─
+WAKE_X, WAKE_Y = 640, 200
+EXIT_X, EXIT_Y = 200, 400
 
 
 def op(i, name, **args):
@@ -40,51 +34,63 @@ def op(i, name, **args):
     return r
 
 
-def find_detail_button():
-    """dump 树, 子串匹配 id 含 'video_detail' 的节点, 返回 (id, cx, cy) 或 None。"""
-    resp = send({"id": "detect", "op": "dump",
-                 "args": {"depth": 8, "include": ["bounds", "id", "clickable"]}})
-    if not resp.get("ok"):
-        return None
+def find_detail_button_from_candidates(candidates):
+    """从候选列表中找详情按钮。
 
-    def walk(node):
-        nid = node.get("id", "")
-        if "video_detail" in nid:
-            b = node.get("bounds", {})
-            cx = (b.get("l", 0) + b.get("r", 0)) // 2
-            cy = (b.get("t", 0) + b.get("b", 0)) // 2
-            return nid, cx, cy
-        for c in node.get("children", []):
-            hit = walk(c)
-            if hit:
-                return hit
-        return None
+    优先级:
+      1. text 含"简介"或"详情"
+      2. kind == "button" 且位于顶部区域 (y < 200)
 
-    return walk(resp["data"].get("window", {}))
+    Returns:
+        (cx, cy, matched_by) 或 None
+    """
+    # 策略 1: text 匹配
+    for c in candidates:
+        c_text = c.get("text", "")
+        if "简介" in c_text or "详情" in c_text:
+            bbox = c.get("bbox_px", {})
+            cx = (bbox.get("x1", 0) + bbox.get("x2", 0)) // 2
+            cy = (bbox.get("y1", 0) + bbox.get("y2", 0)) // 2
+            return cx, cy, f"text:{c_text}"
+
+    # 策略 2: button 类型且位于顶部
+    for c in candidates:
+        bbox = c.get("bbox_px", {})
+        y1 = bbox.get("y1", 0)
+        if c.get("kind") == "button" and y1 < 200:
+            cx = (bbox.get("x1", 0) + bbox.get("x2", 0)) // 2
+            cy = (bbox.get("y1", 0) + bbox.get("y2", 0)) // 2
+            return cx, cy, f"button_top:{c.get('text', '')}"
+
+    return None
 
 
 def do_in():
     """进入详情页。"""
-    # ping 确认连接
     r1 = op(1, "ping")
     if not r1.get("ok"):
-        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
+        sys.exit("ping 失败")
 
     # 唤控制条
     op(2, "tap", x=WAKE_X, y=WAKE_Y)
     time.sleep(1.5)
 
-    # 自适应找详情按钮(支持任意版本 / 任意位置)
-    hit = find_detail_button()
+    # observe_screen 获取候选
+    obs_result = observe_screen()
+    if not obs_result.get("ok"):
+        sys.exit("observe_screen 失败")
+
+    candidates = obs_result.get("data", {}).get("candidates", [])
+    hit = find_detail_button_from_candidates(candidates)
+
     if not hit:
-        sys.exit("未找到详情页按钮(id 含 'video_detail' 的节点)")
+        # 兜底坐标
+        detail_x, detail_y = 513, 97
+        print(f"未找到详情按钮，使用兜底坐标 ({detail_x}, {detail_y})")
+    else:
+        detail_x, detail_y, matched_by = hit
+        print(f"找到详情按钮：{matched_by}, 坐标=({detail_x}, {detail_y})")
 
-    nid, detail_x, detail_y = hit
-    # 取 id 的最后一段做显示(去掉包名前缀)
-    short_id = nid.split("/")[-1] if "/" in nid else nid
-    print(f"找到详情按钮: id={short_id}, 坐标=({detail_x}, {detail_y})")
-
-    # 立刻点(控制条 3-5s 后自动隐藏, 不能再等)
     op(3, "tap", x=detail_x, y=detail_y)
     print("\n已进入详情页")
 
@@ -93,7 +99,7 @@ def do_out():
     """退出详情页。"""
     r1 = op(1, "ping")
     if not r1.get("ok"):
-        sys.exit("ping 失败——确认无障碍服务已开且 adb forward 已建")
+        sys.exit("ping 失败")
 
     op(2, "tap", x=EXIT_X, y=EXIT_Y)
     print("\n已退出详情页")
@@ -101,7 +107,7 @@ def do_out():
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in ("in", "out"):
-        sys.exit("用法: python aiqiyi/run-detail.py in|out\n"
+        sys.exit("用法：python aiqiyi/run-detail.py in|out\n"
                  "  in   进入详情页\n"
                  "  out  退出详情页")
 
@@ -116,56 +122,31 @@ def main():
 
 def run_open(params=None):
     """aiqiyi.open_detail — 进入详情页。"""
-    # ping 确认连接
     r1 = op(1, "ping")
     if not r1.get("ok"):
         return error("EXECUTION_FAILED", "ping failed")
 
-    # 唤控制条
     op(2, "tap", x=WAKE_X, y=WAKE_Y)
     time.sleep(1.5)
 
-    # 自适应找详情按钮(支持任意版本 / 任意位置)
-    hit = find_detail_button()
-    if hit:
-        nid, detail_x, detail_y = hit
-        op(3, "tap", x=detail_x, y=detail_y)
-        short_id = nid.split("/")[-1] if "/" in nid else nid
+    obs_result = observe_screen()
+    if not obs_result.get("ok"):
+        # 兜底坐标
+        FALLBACK_X, FALLBACK_Y = 513, 97
+        op(3, "tap", x=FALLBACK_X, y=FALLBACK_Y)
         return success("aiqiyi.open_detail",
-                       f"detail_opened (matched_by=id:{short_id}, tap={detail_x},{detail_y})")
+                       f"detail_opened (matched_by=fallback_coords, tap={FALLBACK_X},{FALLBACK_Y})")
 
-    # 策略 2: 扫描顶栏 "简介" 文本
-    resp = op("detect2", "dump", depth=8, include=["bounds", "id", "text", "clickable"])
-    if resp.get("ok"):
-        window = resp["data"].get("window", {})
+    candidates = obs_result.get("data", {}).get("candidates", [])
+    hit = find_detail_button_from_candidates(candidates)
 
-        def find_text_in_top(node, keyword, max_y=200):
-            if node is None:
-                return None
-            b = node.get("bounds", {})
-            if b.get("t", 0) > max_y:
-                return None
-            text = node.get("text", "")
-            desc = node.get("desc", "")
-            if (text and keyword in text) or (desc and keyword in desc):
-                return node
-            for c in node.get("children", []):
-                hit = find_text_in_top(c, keyword, max_y)
-                if hit:
-                    return hit
-            return None
+    if hit:
+        detail_x, detail_y, matched_by = hit
+        op(3, "tap", x=detail_x, y=detail_y)
+        return success("aiqiyi.open_detail",
+                       f"detail_opened (matched_by={matched_by}, tap={detail_x},{detail_y})")
 
-        for keyword in ["简介", "详情"]:
-            node = find_text_in_top(window, keyword)
-            if node:
-                b = node.get("bounds", {})
-                detail_x = (b.get("l", 0) + b.get("r", 0)) // 2
-                detail_y = (b.get("t", 0) + b.get("b", 0)) // 2
-                op(3, "tap", x=detail_x, y=detail_y)
-                return success("aiqiyi.open_detail",
-                               f"detail_opened (matched_by=text:{keyword}, tap={detail_x},{detail_y})")
-
-    # 策略 3: 兜底坐标 (基于 UI dump: video_detail2 的中心)
+    # 兜底坐标
     FALLBACK_X, FALLBACK_Y = 513, 97
     op(3, "tap", x=FALLBACK_X, y=FALLBACK_Y)
     return success("aiqiyi.open_detail",

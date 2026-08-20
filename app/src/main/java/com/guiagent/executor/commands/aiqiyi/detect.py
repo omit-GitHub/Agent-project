@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""爱奇艺播放页自动检测模块。
+"""爱奇艺播放页自动检测模块 — Phase 7 无 dump 版。
 
-通过 dump UI 判断当前是 TV 模式还是电影模式：
-- 有 tv_change_episode (选集) 按钮 → TV 模式
-- 无 tv_change_episode → 电影模式
+通过 observe_screen() 判断当前是 TV 模式还是电影模式：
+- 有"选集"候选 → TV 模式
+- 无"选集"候选 → 电影模式
 
 返回对应的按钮坐标。
 """
@@ -13,6 +13,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from send import send
+from observation.screen.cmd_observe_screen import observe_screen
 
 
 def detect_mode(wait=2.0):
@@ -25,23 +26,20 @@ def detect_mode(wait=2.0):
     send({"id": "detect_1", "op": "tap", "args": {"x": 640, "y": 200}})
     time.sleep(wait)
 
-    # dump UI
-    resp = send({"id": "detect_2", "op": "dump", "args": {"depth": 5}})
-    if not resp.get("ok"):
-        raise Exception("dump failed")
+    # observe_screen 获取候选
+    obs_result = observe_screen()
+    if not obs_result.get("ok"):
+        raise Exception("observe_screen failed")
 
-    # 递归检查是否有选集按钮
-    def has_episode_btn(node):
-        nid = node.get("id", "")
-        if "tv_change_episode" in nid:
-            return True
-        for child in node.get("children", []):
-            if has_episode_btn(child):
-                return True
-        return False
+    candidates = obs_result.get("data", {}).get("candidates", [])
 
-    window = resp.get("data", {}).get("window", {})
-    has_episode = has_episode_btn(window)
+    # 检查是否有选集相关候选
+    has_episode = False
+    for c in candidates:
+        c_text = c.get("text", "")
+        if "选集" in c_text:
+            has_episode = True
+            break
 
     mode = "tv" if has_episode else "movie"
 
