@@ -31,7 +31,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 from send import send                                               # noqa: E402
-from common.utils import success_with_data, error, dump as ws_dump  # noqa: E402
+from common.utils import success_with_data, error                   # noqa: E402
 
 from .focus_tracker import (                                        # noqa: E402
     find_focused_node,
@@ -55,10 +55,14 @@ FOCUS_SETTLE_WAIT_MS = 150          # 焦点稳定额外等待
 # ─────────────── 辅助函数 ───────────────
 
 def _do_dump():
-    """dump UI 树。失败返回空 dict。"""
+    """dump UI 树（直接 WS 调用）。失败返回空 dict。"""
     try:
-        r = ws_dump(depth=5, include=["id", "text", "class", "focused",
-                                       "clickable", "bounds", "content_desc"])
+        r = send({
+            "id": f"dpad_dump_{id(None)}",
+            "op": "dump",
+            "args": {"depth": 5, "include": ["id", "text", "class", "focused",
+                                              "clickable", "bounds", "content_desc"]},
+        })
         if r.get("ok"):
             return r.get("data", {}).get("window", {}) or r.get("data", {})
     except Exception:
