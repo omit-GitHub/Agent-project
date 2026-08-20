@@ -1,0 +1,7 @@
+{
+  "task_success_rate": 0.25,
+  "reveal_success_rate": 0.9666666666666667,
+  "end_to_end_p50_ms": 0.00476837158203125,
+  "end_to_end_p95_ms": 0.023365020751953125,
+  "timestamp": 1787193318.4087155
+}
