@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-"""爱奇艺调倍速 — v2 重构版。
+"""爱奇艺调倍速 — Phase 6 无 dump 版。
 
 新流程:
   1. resolve_state() 检查 page_type == 'player'
   2. 解析期望倍速
-  3. action(): 控制条未显 → reveal；tap 倍速按钮打开面板 → find 目标节点 → tap
-  4. verify_after_action(predicate=speed_changed(expected))
-  5. 返回 success_with_data 含 verification
+  3. 唤出控制条（如需要）
+  4. observe_screen() 获取候选列表
+  5. 找到"倍速"候选 → tap_candidate
+  6. 再次 observe_screen() 找到目标倍率 → tap_candidate
+  7. verify_after_action(predicate=speed_changed(expected))
 
 外部 API 完全保持兼容。
 """
@@ -18,12 +20,14 @@ _HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from common.utils import success_with_data, error, tap, find_nodes  # noqa: E402
-from observation.state import resolve_state                          # noqa: E402
-from observation.reveal import reveal_controls                       # noqa: E402
-from observation.verify import verify_after_action                   # noqa: E402
-from observation.verify.predicates import speed_changed              # noqa: E402
-from observation.verify.recovery import re_reveal                    # noqa: E402
+from common.utils import success_with_data, error  # noqa: E402
+from observation.state import resolve_state  # noqa: E402
+from observation.reveal import reveal_controls  # noqa: E402
+from observation.verify import verify_after_action  # noqa: E402
+from observation.verify.predicates import speed_changed  # noqa: E402
+from observation.verify.recovery import re_reveal  # noqa: E402
+from observation.screen.cmd_observe_screen import observe_screen  # noqa: E402
+from observation.observation_cache import get_candidate_map, get_candidate_by_id  # noqa: E402
 
 from . import _shared as S  # noqa: E402
 
@@ -39,10 +43,6 @@ def run(params=None):
         return error("BAD_ARGS", "speed param required (e.g., '1.5')")
     speed = str(speed)
 
-    res_id = S.SPEED_OPTIONS.get(speed)
-    if not res_id:
-        return error("UNSUPPORTED_SPEED", f"Unsupported speed: {speed}. Options: {list(S.SPEED_OPTIONS.keys())}")
-
     state = resolve_state()
     if not state.is_player_page:
         return error("WRONG_PAGE", f"Not on player page (current: {state.page_type})")
@@ -51,26 +51,56 @@ def run(params=None):
         # 控制条未显 → 先唤出
         if state.player and not state.player.control_bar_visible:
             reveal_controls(app=S.APP_NAME)
+            time.sleep(0.5)
 
-        # 检测 TV / Movie 模式，点倍速按钮
-        from common.utils import dump
-        r = dump(depth=5, include=["id"])
-        tree = r.get("data", {}).get("window", {}) if r.get("ok") else {}
-        has_tv_indicator = _find_in_tree(tree, "tv_change_episode")
-        speed_btn = S.TV_SPEED_BTN if has_tv_indicator else S.MOVIE_SPEED_BTN
-        tap(*speed_btn)
-        time.sleep(1.0)
+        # 观察屏幕，找"倍速"候选
+        obs_result = observe_screen()
+        if not obs_result.get("ok"):
+            return error("OBSERVE_FAILED", "Failed to observe screen")
 
-        # 找目标倍速节点并点击
-        nodes = find_nodes(res_id, limit=1)
-        if nodes.get("ok"):
-            items = nodes.get("data", {}).get("nodes", [])
-            if items:
-                b = items[0].get("bounds", {})
-                cx = (b.get("l", 0) + b.get("r", 0)) // 2
-                cy = (b.get("t", 0) + b.get("b", 0)) // 2
-                return tap(cx, cy)
-        return error("NODE_NOT_FOUND", f"Speed node '{res_id}' not found")
+        # 找到"倍速"按钮
+        speed_entry_candidate = None
+        for c in obs_result.get("data", {}).get("candidates", []):
+            if c.get("text") and "倍速" in c.get("text"):
+                speed_entry_candidate = c
+                break
+
+        if not speed_entry_candidate:
+            return error("SPEED_BUTTON_NOT_FOUND", "Speed button not found in candidates")
+
+        # 点击倍速按钮
+        from common.utils import tap
+        bbox = speed_entry_candidate.get("bbox_px", {})
+        cx = (bbox.get("x1", 0) + bbox.get("x2", 0)) // 2
+        cy = (bbox.get("y1", 0) + bbox.get("y2", 0)) // 2
+        tap_result = tap(cx, cy)
+        if not tap_result.get("ok"):
+            return error("TAP_FAILED", "Failed to tap speed button")
+
+        time.sleep(0.8)
+
+        # 再次观察，找目标倍率
+        obs_result2 = observe_screen()
+        if not obs_result2.get("ok"):
+            return error("OBSERVE_FAILED", "Failed to observe screen after tapping speed button")
+
+        # 找到目标倍率候选（如 "1.5x" 或 "1.5 倍"）
+        target_candidate = None
+        target_texts = [f"{speed}x", f"{speed}倍", speed]
+        for c in obs_result2.get("data", {}).get("candidates", []):
+            c_text = c.get("text", "")
+            if any(t in c_text for t in target_texts):
+                target_candidate = c
+                break
+
+        if not target_candidate:
+            return error("SPEED_OPTION_NOT_FOUND", f"Speed option '{speed}' not found")
+
+        # 点击目标倍率
+        bbox2 = target_candidate.get("bbox_px", {})
+        cx2 = (bbox2.get("x1", 0) + bbox2.get("x2", 0)) // 2
+        cy2 = (bbox2.get("y1", 0) + bbox2.get("y2", 0)) // 2
+        return tap(cx2, cy2)
 
     result = verify_after_action(
         action_fn=action,
@@ -85,15 +115,3 @@ def run(params=None):
         data["verification"] = result.verification.to_dict()
     data["recovered"] = result.recovered
     return success_with_data("aiqiyi.set_speed", data)
-
-
-def _find_in_tree(tree, id_substring):
-    """在 UI 树里递归找含 id_substring 的节点。"""
-    if not tree:
-        return False
-    if id_substring in (tree.get("id") or ""):
-        return True
-    for child in tree.get("children", []) or []:
-        if _find_in_tree(child, id_substring):
-            return True
-    return False

@@ -59,3 +59,5 @@
 {"filename": "screen_20260819_172525_058.png", "timestamp": "20260819_172525", "package": "unknown", "activity": "unknown", "page_type": "grid", "control_bar_visible": "unknown", "tags": ["pure_icon"], "width": 1280, "height": 800}
 {"filename": "screen_20260819_172553_059.png", "timestamp": "20260819_172553", "package": "unknown", "activity": "unknown", "page_type": "overlay", "control_bar_visible": "unknown", "tags": ["ad"], "width": 1280, "height": 800}
 {"filename": "screen_20260819_172614_060.png", "timestamp": "20260819_172614", "package": "unknown", "activity": "unknown", "page_type": "grid", "control_bar_visible": "unknown", "tags": ["pure_icon"], "width": 1280, "height": 800}
+{"filename": "screen_20260820_103257_061.png", "timestamp": "20260820_103257", "package": "unknown", "activity": "unknown", "page_type": "overlay", "control_bar_visible": "unknown", "tags": ["ad"], "width": 1280, "height": 800}
+{"filename": "screen_20260820_103315_062.png", "timestamp": "20260820_103315", "package": "unknown", "activity": "unknown", "page_type": "detail", "control_bar_visible": "unknown", "tags": ["none"], "width": 1280, "height": 800}

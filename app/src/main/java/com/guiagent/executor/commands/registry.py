@@ -26,9 +26,8 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from common.utils import (  # noqa: E402
-    dump as ws_dump,
+    ping as ws_ping,
     collect_texts,
-    find_node_in_tree,
     error as make_error,
 )
 
@@ -53,19 +52,19 @@ def capture_state():
     """采集当前前台状态。
 
     对标 Java StateCapture.capture():
-    {"pkg": "com.xxx", "summary": ["文本1", "文本2", ...]}
+    {"pkg": "com.xxx", "summary": []}
 
-    通过 WS dump 获取 UI 树，提取 root 的 pkg 和可见文本。
+    Phase 6: 改用 ping 获取包名，不再依赖 dump。
     """
     try:
-        r = ws_dump(depth=4, include=["id", "text", "pkg"])
+        r = ws_ping()
         if not r.get("ok"):
             return {"pkg": "", "summary": []}
 
-        window = r.get("data", {}).get("window", {})
-        pkg = window.get("pkg", "")
-        texts = collect_texts(window, max_count=MAX_SUMMARY_TEXTS, max_len=MAX_TEXT_LEN)
-        return {"pkg": pkg, "summary": texts}
+        data = r.get("data", {})
+        pkg = data.get("package", "") or data.get("pkg", "")
+        # summary 不再从 UI 树提取，保持空列表（Phase 6 简化）
+        return {"pkg": pkg, "summary": []}
     except Exception:
         return {"pkg": "", "summary": []}
 
