@@ -4,9 +4,17 @@
 
 **任务**: Harness B1 — 可量化安全验证与受限恢复闭环  
 **完成时间**: 2026-08-21  
-**测试总数**: 116 个（全部通过）  
+**测试总数**: 131 个（全部通过）  
 **安全断言**: 5 个（全部成立）  
-**执行耗时**: 20.53ms
+**执行耗时**: 27.0ms
+
+**测试套件分布**:
+- test_smoke: 7 个测试
+- test_action_guard_injection: 60 个测试
+- test_verifier_four_state: 23 个测试
+- test_control_revealer_state_machine: 26 个测试
+- test_guard_declarative_registry: 8 个测试
+- test_reveal_plan_regression: 7 个测试
 
 ---
 
@@ -234,17 +242,19 @@
 
 ```json
 {
-  "timestamp": "2026-08-21T12:44:31",
-  "total_tests": 116,
-  "passed": 116,
+  "timestamp": "2026-08-21T14:32:18",
+  "total_tests": 131,
+  "passed": 131,
   "failed": 0,
   "errors": 0,
-  "duration_ms": 20.53,
+  "duration_ms": 27.02,
   "by_suite": {
     "test_smoke": {"total": 7, "passed": 7, "failed": 0, "errors": 0},
     "test_action_guard_injection": {"total": 60, "passed": 60, "failed": 0, "errors": 0},
     "test_verifier_four_state": {"total": 23, "passed": 23, "failed": 0, "errors": 0},
-    "test_control_revealer_state_machine": {"total": 26, "passed": 26, "failed": 0, "errors": 0}
+    "test_control_revealer_state_machine": {"total": 26, "passed": 26, "failed": 0, "errors": 0},
+    "test_guard_declarative_registry": {"total": 8, "passed": 8, "failed": 0, "errors": 0},
+    "test_reveal_plan_regression": {"total": 7, "passed": 7, "failed": 0, "errors": 0}
   },
   "safety_assertions": {
     "guard_rejection_executor_calls_zero": true,

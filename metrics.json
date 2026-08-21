@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-08-21T12:44:31",
-  "total_tests": 116,
-  "passed": 116,
+  "timestamp": "2026-08-21T14:32:18",
+  "total_tests": 131,
+  "passed": 131,
   "failed": 0,
   "errors": 0,
-  "duration_ms": 20.53,
+  "duration_ms": 27.02,
   "by_suite": {
     "test_smoke": {
       "total": 7,
@@ -27,6 +27,18 @@
     "test_control_revealer_state_machine": {
       "total": 26,
       "passed": 26,
+      "failed": 0,
+      "errors": 0
+    },
+    "test_guard_declarative_registry": {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "errors": 0
+    },
+    "test_reveal_plan_regression": {
+      "total": 7,
+      "passed": 7,
       "failed": 0,
       "errors": 0
     }

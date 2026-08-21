@@ -47,6 +47,8 @@ TEST_SUITES = [
     "tests.test_action_guard_injection",
     "tests.test_verifier_four_state",
     "tests.test_control_revealer_state_machine",
+    "tests.test_guard_declarative_registry",
+    "tests.test_reveal_plan_regression",
 ]
 
 
