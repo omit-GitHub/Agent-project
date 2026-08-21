@@ -1,324 +1,230 @@
 # -*- coding: utf-8 -*-
-"""Verifier — 分层结果验证机制。
+"""分层 Verifier — 本地信号优先 + 严格四态输出。
 
-验证优先级（从低成本到高成本）：
-  1. 包名/Activity 变化
-  2. 目标 OCR 文字出现/消失
-  3. 候选布局变化
-  4. 目标局部 patch 变化
-  5. 选中态/弹窗/控制条检测
-  6. VLM 视觉验证（最后手段）
+严格 success 条件（约束 #4）：
+  1. action.expected_package 命中 after.package
+  2. action.expected_activity 命中 after.activity（且 package 一致）
+  3. control_bar_visible: false → true
+  4. action.target_role 命中 after.selected_role
+  5. action.target_role 对应文字 ∈ after.ocr_tokens - before.ocr_tokens
 
-unknown 与 success 严格区分，避免"调用未报错"被误判为成功。
+其他任何变化（layout、非目标 OCR、局部图像）→ not_yet/unknown，绝不 success。
+
+unknown 累计超限 → VLM fallback；VLM 不可用 → unknown。
 """
-import hashlib
-import time
-from dataclasses import dataclass
-from typing import Literal, Optional
+from enum import Enum
+from typing import Any, Callable, Optional
 
-from ..candidates.schemas import CandidateMap
+from pydantic import BaseModel, Field
+
+from .schemas import ActionSpec, UiState
 
 
-@dataclass
-class VerificationResult:
-    """验证结果。"""
-    status: Literal["success", "not_yet", "failed", "unknown"]
-    level: str = ""          # 验证层级（local_ocr, local_layout, vlm, ...）
-    reason: str = ""
-    evidence: dict = None
+# ─────────────── 枚举 ───────────────
 
-    def __post_init__(self):
-        if self.evidence is None:
-            self.evidence = {}
+class VerificationStatus(str, Enum):
+    success = "success"
+    not_yet = "not_yet"
+    failed = "failed"
+    unknown = "unknown"
 
+
+class VerificationSource(str, Enum):
+    local = "local"
+    vlm = "vlm"
+
+
+# ─────────────── 验证结果 ───────────────
+
+class VerificationResult(BaseModel):
+    """严格 schema 的四态验证结果。"""
+    verification: VerificationStatus
+    source: VerificationSource
+    reason: str
+    observed_state: dict = Field(default_factory=dict)
+
+
+# ─────────────── Local Verifier ───────────────
 
 class LocalVerifier:
     """本地快速验证器。
 
-    不依赖 VLM，使用 OCR 文字、候选布局、像素 patch 等信号。
+    严格按约束 #4 的 success 条件判断；其他一律 not_yet / unknown。
     """
 
-    def __init__(self):
-        self._last_ocr_tokens = set()
-        self._last_layout_hash = ""
-
-    def check_page_change(
+    def verify(
         self,
-        before_pkg: str,
-        after_pkg: str,
-        before_activity: str,
-        after_activity: str,
+        before: UiState,
+        after: UiState,
+        action: ActionSpec,
     ) -> VerificationResult:
-        """检查包名/Activity 是否变化。"""
-        if before_pkg != after_pkg:
+        """基于 (before, after, action) 的本地判定。"""
+
+        observed: dict = {
+            "before_package": before.package,
+            "after_package": after.package,
+            "before_activity": before.activity,
+            "after_activity": after.activity,
+            "before_bar": before.control_bar_visible,
+            "after_bar": after.control_bar_visible,
+            "before_selected_role": before.selected_role,
+            "after_selected_role": after.selected_role,
+            "target_role": action.target_role,
+            "expected_package": action.expected_package,
+            "expected_activity": action.expected_activity,
+        }
+
+        # 1. expected_package 命中
+        if action.expected_package and after.package == action.expected_package:
             return VerificationResult(
-                status="success",
-                level="local_page",
-                reason=f"Package changed: {before_pkg} -> {after_pkg}",
-                evidence={"before_pkg": before_pkg, "after_pkg": after_pkg},
+                verification=VerificationStatus.success,
+                source=VerificationSource.local,
+                reason=f"reached expected package: {action.expected_package}",
+                observed_state=observed,
             )
+
+        # 2. expected_activity 命中（要求 package 一致，避免跨 App 误判）
+        if (action.expected_activity
+                and after.activity == action.expected_activity
+                and after.package == before.package):
+            return VerificationResult(
+                verification=VerificationStatus.success,
+                source=VerificationSource.local,
+                reason=f"reached expected activity: {action.expected_activity}",
+                observed_state=observed,
+            )
+
+        # 3. control_bar false → true
+        if not before.control_bar_visible and after.control_bar_visible:
+            return VerificationResult(
+                verification=VerificationStatus.success,
+                source=VerificationSource.local,
+                reason="control_bar became visible",
+                observed_state=observed,
+            )
+
+        # 4. target_role 命中 selected_role
+        if (action.target_role
+                and after.selected_role is not None
+                and after.selected_role == action.target_role):
+            return VerificationResult(
+                verification=VerificationStatus.success,
+                source=VerificationSource.local,
+                reason=f"selected_role matches target: {action.target_role}",
+                observed_state=observed,
+            )
+
+        # 5. target_role 对应 OCR 出现
+        if action.target_role:
+            new_tokens = after.ocr_tokens - before.ocr_tokens
+            if action.target_role in new_tokens:
+                return VerificationResult(
+                    verification=VerificationStatus.success,
+                    source=VerificationSource.local,
+                    reason=f"target_role OCR token appeared: {action.target_role}",
+                    observed_state={**observed, "new_tokens": sorted(new_tokens)[:10]},
+                )
+
+        # 其他任何变化 → not_yet（本地无法判定时不谎报 success）
         return VerificationResult(
-            status="unknown",
-            level="local_page",
-            reason="Package unchanged",
+            verification=VerificationStatus.not_yet,
+            source=VerificationSource.local,
+            reason="no explicit target signal observed",
+            observed_state=observed,
         )
 
-    def check_ocr_target(
-        self,
-        before_tokens: set,
-        after_tokens: set,
-        target_text: str,
-        should_appear: bool = True,
-    ) -> VerificationResult:
-        """检查目标 OCR 文字是否出现/消失。"""
-        new_tokens = after_tokens - before_tokens
-        removed_tokens = before_tokens - after_tokens
 
-        if should_appear:
-            # 目标文字应该出现
-            for token in new_tokens:
-                if target_text.lower() in token.lower():
-                    return VerificationResult(
-                        status="success",
-                        level="local_ocr",
-                        reason=f"Target '{target_text}' appeared in OCR",
-                        evidence={"new_token": token},
-                    )
-            return VerificationResult(
-                status="not_yet" if after_tokens else "failed",
-                level="local_ocr",
-                reason=f"Target '{target_text}' not found in new OCR tokens",
-                evidence={"new_tokens": list(new_tokens)[:5]},
-            )
-        else:
-            # 目标文字应该消失
-            for token in removed_tokens:
-                if target_text.lower() in token.lower():
-                    return VerificationResult(
-                        status="success",
-                        level="local_ocr",
-                        reason=f"Target '{target_text}' disappeared from OCR",
-                    )
-            return VerificationResult(
-                status="unknown",
-                level="local_ocr",
-                reason=f"Cannot confirm '{target_text}' disappearance",
-            )
-
-    def check_layout_change(
-        self,
-        before_map: Optional[CandidateMap],
-        after_map: Optional[CandidateMap],
-    ) -> VerificationResult:
-        """检查候选布局是否变化。"""
-        if before_map is None or after_map is None:
-            return VerificationResult(
-                status="unknown",
-                level="local_layout",
-                reason="Missing candidate map",
-            )
-
-        before_count = len(before_map.candidates)
-        after_count = len(after_map.candidates)
-
-        if before_count != after_count:
-            return VerificationResult(
-                status="success",
-                level="local_layout",
-                reason=f"Candidate count changed: {before_count} -> {after_count}",
-                evidence={"before": before_count, "after": after_count},
-            )
-
-        # 检查候选位置是否有显著变化
-        before_positions = set()
-        for c in before_map.candidates:
-            pos = (c.bbox_px.x1 // 50, c.bbox_px.y1 // 50)
-            before_positions.add(pos)
-
-        after_positions = set()
-        for c in after_map.candidates:
-            pos = (c.bbox_px.x1 // 50, c.bbox_px.y1 // 50)
-            after_positions.add(pos)
-
-        if before_positions != after_positions:
-            return VerificationResult(
-                status="success",
-                level="local_layout",
-                reason="Candidate positions changed significantly",
-            )
-
-        return VerificationResult(
-            status="not_yet",
-            level="local_layout",
-            reason="Layout unchanged",
-        )
-
-    def check_control_bar(
-        self,
-        before_visible: Optional[bool],
-        after_visible: Optional[bool],
-        should_be_visible: bool = True,
-    ) -> VerificationResult:
-        """检查控制条是否出现/消失。"""
-        if after_visible is None:
-            return VerificationResult(
-                status="unknown",
-                level="local_control_bar",
-                reason="Control bar status unknown",
-            )
-
-        if should_be_visible and after_visible:
-            return VerificationResult(
-                status="success",
-                level="local_control_bar",
-                reason="Control bar appeared",
-            )
-        elif not should_be_visible and not after_visible:
-            return VerificationResult(
-                status="success",
-                level="local_control_bar",
-                reason="Control bar hidden as expected",
-            )
-        else:
-            return VerificationResult(
-                status="failed",
-                level="local_control_bar",
-                reason=f"Control bar visibility mismatch: expected={should_be_visible}, actual={after_visible}",
-            )
-
+# ─────────────── VLM Verifier ───────────────
 
 class VlmVerifier:
     """VLM 视觉验证器（最后手段）。
 
-    仅在本地验证无法判定时调用。
+    通过可注入 callable 调用；callable 不可用或抛错时返回 unknown。
     """
 
-    def __init__(self, vlm_client=None):
-        self._client = vlm_client
+    def __init__(self, callable_fn: Optional[Callable[..., Any]] = None):
+        self._callable = callable_fn
 
     def verify(
         self,
-        screenshot_path: str,
-        subgoal: str,
-        expected: str,
-        action_description: str = "",
+        before: UiState,
+        after: UiState,
+        action: ActionSpec,
     ) -> VerificationResult:
-        """调用 VLM 进行视觉验证。"""
-        if self._client is None:
+        if self._callable is None:
             return VerificationResult(
-                status="unknown",
-                level="vlm",
-                reason="VLM client not available",
+                verification=VerificationStatus.unknown,
+                source=VerificationSource.vlm,
+                reason="VLM callable not provided",
             )
-
         try:
-            result = self._client.verify(
-                screenshot_path=screenshot_path,
-                subgoal=subgoal,
-                action={"description": action_description},
-                expected=expected,
-            )
-
+            result = self._callable(before, after, action)
+            if isinstance(result, VerificationResult):
+                return result
+            # callable 返回 dict 兼容
+            if isinstance(result, dict):
+                return VerificationResult(
+                    verification=VerificationStatus(result.get("verification", "unknown")),
+                    source=VerificationSource.vlm,
+                    reason=result.get("reason", ""),
+                    observed_state=result.get("observed_state", {}),
+                )
             return VerificationResult(
-                status=result.verification,
-                level="vlm",
-                reason=result.reason,
-                evidence=result.observed_state,
+                verification=VerificationStatus.unknown,
+                source=VerificationSource.vlm,
+                reason=f"VLM returned unexpected type: {type(result).__name__}",
             )
         except Exception as e:
             return VerificationResult(
-                status="unknown",
-                level="vlm",
-                reason=f"VLM verification error: {e}",
+                verification=VerificationStatus.unknown,
+                source=VerificationSource.vlm,
+                reason=f"VLM error: {e}",
             )
 
+
+# ─────────────── Layered Verifier ───────────────
 
 class LayeredVerifier:
     """分层验证器。
 
-    按优先级依次尝试本地验证，失败时才调用 VLM。
+    按优先级：本地信号 → VLM fallback。
+    unknown 累计超限才调用 VLM；VLM 不可用 → unknown。
     """
 
-    def __init__(self, vlm_client=None):
+    def __init__(
+        self,
+        vlm_callable: Optional[Callable[..., Any]] = None,
+        max_unknown_before_vlm: int = 1,
+    ):
         self.local = LocalVerifier()
-        self.vlm = VlmVerifier(vlm_client)
+        self.vlm = VlmVerifier(vlm_callable)
         self._unknown_count = 0
-        self._max_unknown_retries = 1  # unknown 最多重试 1 次
+        self._max_unknown_before_vlm = max_unknown_before_vlm
 
     def verify(
         self,
-        before_pkg: str,
-        after_pkg: str,
-        before_activity: str,
-        after_activity: str,
-        before_ocr_tokens: set,
-        after_ocr_tokens: set,
-        before_map: Optional[CandidateMap],
-        after_map: Optional[CandidateMap],
-        before_control_bar: Optional[bool],
-        after_control_bar: Optional[bool],
-        target_text: str = "",
-        should_appear: bool = True,
-        should_bar_be_visible: bool = True,
-        vlm_screenshot: Optional[str] = None,
-        vlm_subgoal: str = "",
-        vlm_expected: str = "",
+        before: UiState,
+        after: UiState,
+        action: ActionSpec,
     ) -> VerificationResult:
-        """分层验证。
+        # 本地判定
+        local_result = self.local.verify(before, after, action)
 
-        Returns:
-            VerificationResult
-        """
-        # Level 1: 包名/Activity 变化
-        result = self.local.check_page_change(
-            before_pkg, after_pkg, before_activity, after_activity,
-        )
-        if result.status == "success":
-            return result
-
-        # Level 2: 目标 OCR 文字出现/消失
-        if target_text:
-            result = self.local.check_ocr_target(
-                before_ocr_tokens, after_ocr_tokens,
-                target_text, should_appear,
-            )
-            if result.status in ("success", "failed"):
-                return result
-
-        # Level 3: 候选布局变化
-        result = self.local.check_layout_change(before_map, after_map)
-        if result.status == "success":
-            return result
-
-        # Level 4: 控制条状态
-        result = self.local.check_control_bar(
-            before_control_bar, after_control_bar, should_bar_be_visible,
-        )
-        if result.status in ("success", "failed"):
-            return result
-
-        # Level 5: VLM 视觉验证（最后手段）
-        if vlm_screenshot and vlm_subgoal:
-            if self._unknown_count < self._max_unknown_retries:
+        if local_result.verification != VerificationStatus.not_yet:
+            # success / failed / unknown 直接返回
+            if local_result.verification == VerificationStatus.unknown:
                 self._unknown_count += 1
-                return self.vlm.verify(
-                    screenshot_path=vlm_screenshot,
-                    subgoal=vlm_subgoal,
-                    expected=vlm_expected,
-                )
             else:
-                return VerificationResult(
-                    status="unknown",
-                    level="vlm_skipped",
-                    reason=f"Max unknown retries ({self._max_unknown_retries}) exceeded",
-                )
+                self._unknown_count = 0
+            return local_result
 
-        return VerificationResult(
-            status="unknown",
-            level="exhausted",
-            reason="All local checks inconclusive, no VLM available",
-        )
+        # not_yet → 看是否要触发 VLM
+        if self._unknown_count >= self._max_unknown_before_vlm and self.vlm._callable is not None:
+            self._unknown_count = 0
+            return self.vlm.verify(before, after, action)
+
+        return local_result
 
     def reset_unknown_count(self):
-        """重置 unknown 计数（新任务开始时调用）。"""
+        """新任务开始时重置 unknown 计数。"""
         self._unknown_count = 0

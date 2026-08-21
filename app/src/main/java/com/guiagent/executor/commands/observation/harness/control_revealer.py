@@ -54,8 +54,8 @@ class RevealStrategyRecord:
         else:
             self.latency_ema_ms = 0.7 * self.latency_ema_ms + 0.3 * latency_ms
 
-        # 状态恢复
-        if self.state == "probation" and self.consecutive_failures == 0:
+        # 状态恢复（consecutive_failures 已在上方置 0）
+        if self.state == "probation":
             self.state = "active"
 
     def record_semantic_failure(self):
@@ -73,50 +73,6 @@ class RevealStrategyRecord:
         """记录基础设施失败（设备断连/超时等，不污染统计）。"""
         # 不计入 success/failure 统计
         pass
-
-
-# ─────────────── 策略管理器 ───────────────
-
-class RevealStrategyManager:
-    """唤出策略管理器。"""
-
-    def __init__(self, storage_path: Optional[str] = None):
-        self._strategies = {}  # strategy_id -> RevealStrategyRecord
-        self._storage_path = storage_path
-
-        # 加载已有策略
-        if storage_path and os.path.exists(storage_path):
-            self._load()
-
-    def register(self, record: RevealStrategyRecord):
-        """注册新策略。"""
-        self._strategies[record.strategy_id] = record
-        self._save()
-
-    def get_strategy(self, strategy_id: str) -> Optional[RevealStrategyRecord]:
-        """获取策略。"""
-        return self._strategies.get(strategy_id)
-
-    def get_active_strategies(self, app: str) -> list:
-        """获取 App 的活跃策略（按成功率排序）。"""
-        candidates = []
-        for s in self._strategies.values():
-            if s.app == app and s.state != "stale":
-                candidates.append(s)
-
-        # 排序：active > probation，然后按成功率降序，延迟升序
-        candidates.sort(key=lambda s: (
-            0 if s.state == "active" else 1,
-            -s.success_rate,
-            s.latency_ema_ms or 9999,
-        ))
-
-        return candidates
-
-    def select_best(self, app: str) -> Optional[RevealStrategyRecord]:
-        """选择最佳策略。"""
-        strategies = self.get_active_strategies(app)
-        return strategies[0] if strategies else None
 
 
 # ─────────────── Control Revealer ───────────────

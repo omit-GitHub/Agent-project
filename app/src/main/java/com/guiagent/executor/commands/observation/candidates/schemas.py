@@ -38,6 +38,10 @@ class UiCandidate(BaseModel):
     detector_label: Optional[str] = None  # 检测器标签（如 "play_button"）
     confidence: float = Field(ge=0.0, le=1.0)
     clickable_likelihood: float = Field(ge=0.0, le=1.0)
+    # ── 敏感性/语义字段（供 Action Guard 做显式敏感判定，优先于 subgoal 关键词）──
+    risk_category: Optional[str] = None          # "payment" / "delete" / "send" / "logout" / "password" / "authorization" / ...
+    sensitive_category: Optional[str] = None     # 通用敏感分类
+    action_semantics: Optional[str] = None       # 候选动作语义描述
     metadata: dict = Field(default_factory=dict)
 
 
