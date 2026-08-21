@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m unittest discover -s tests)",
+      "Bash(python benchmarks/run_benchmarks.py)",
+      "Bash(python benchmarks/run_baseline_benchmarks.py)",
+      "Bash(python benchmarks/summarize_benchmarks.py)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(python -c ' *)",
+      "Bash(python *)",
+      "Bash(echo \"summarize exit=$?\")",
+      "Bash(git --version)",
+      "Bash(git ls-remote *)",
+      "Bash(git config *)",
+      "Bash(gh auth *)"
+    ]
+  }
+}
