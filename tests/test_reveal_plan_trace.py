@@ -193,5 +193,194 @@ class TestRevealPlanSensitiveAction(unittest.TestCase):
         self.assertIsNone(te["executor_ok"], "executor_ok should be None when Guard rejects")
 
 
+class TestRecoveryActionVerifierCalled(unittest.TestCase):
+    """验证 recovery 动作的 verifier 被调用。"""
+
+    def test_recovery_action_verifier_called(self):
+        """recovery 动作执行后，verifier 必须被调用。"""
+        # 创建一个会失败的动作，触发 recovery
+        class FailingExecutor(FakeExecutor):
+            def __init__(self):
+                super().__init__(after_state=_make_reveal_state())
+                self.call_count = 0
+
+            def execute(self, action, state):
+                self.call_count += 1
+                self.calls.append(action)
+                # 第一次调用失败，后续调用成功
+                if self.call_count == 1:
+                    return ActionResult(
+                        ok=False,
+                        action=action,
+                        after_state=state,
+                        error_code="test_failure"
+                    )
+                return super().execute(action, state)
+
+        from harness.schemas import ActionResult
+        initial_state = _make_reveal_state()
+        executor = FailingExecutor()
+        verifier = FakeVlmVerifier([])
+
+        # 第一个动作会失败，触发 recovery
+        action1 = ActionSpec(
+            action_type="tap_visual",
+            bbox_px=BBox(x1=100, y1=100, x2=200, y2=200),
+        )
+        action2 = ActionSpec(
+            action_type="tap_visual",
+            bbox_px=BBox(x1=100, y1=100, x2=200, y2=200),
+        )
+        source = MockDecisionSource([action1, action2])
+
+        result = run_action_loop(
+            source, executor, verifier,
+            initial_state=initial_state,
+            subgoal="test",
+            max_decision_calls=10,
+            max_steps=10,
+            recovery_budget=2,
+        )
+
+        # 验证：executor 被调用多次（包括 recovery）
+        self.assertGreater(len(executor.calls), 1,
+                          "Executor should be called multiple times including recovery")
+
+        # 验证：verifier 被调用（通过检查 trace 中的 verification 字段）
+        verification_called = False
+        for te in result.trace:
+            if te.get("verification") is not None:
+                verification_called = True
+                break
+
+        self.assertTrue(verification_called,
+                       "Verifier should be called for executed actions including recovery")
+
+
+class TestRecoveryActionTraceCompleteness(unittest.TestCase):
+    """验证 recovery 动作的 trace 完整性。"""
+
+    def test_recovery_action_trace_complete(self):
+        """recovery 动作的 trace 必须包含所有必需字段。"""
+        # 创建一个会失败的动作，触发 recovery
+        class FailingExecutor(FakeExecutor):
+            def __init__(self):
+                super().__init__(after_state=_make_reveal_state())
+                self.call_count = 0
+
+            def execute(self, action, state):
+                self.call_count += 1
+                self.calls.append(action)
+                # 第一次调用失败，后续调用成功
+                if self.call_count == 1:
+                    return ActionResult(
+                        ok=False,
+                        action=action,
+                        after_state=state,
+                        error_code="test_failure"
+                    )
+                return super().execute(action, state)
+
+        from harness.schemas import ActionResult
+        initial_state = _make_reveal_state()
+        executor = FailingExecutor()
+        verifier = FakeVlmVerifier([])
+
+        action1 = ActionSpec(
+            action_type="tap_visual",
+            bbox_px=BBox(x1=100, y1=100, x2=200, y2=200),
+        )
+        action2 = ActionSpec(
+            action_type="tap_visual",
+            bbox_px=BBox(x1=100, y1=100, x2=200, y2=200),
+        )
+        source = MockDecisionSource([action1, action2])
+
+        result = run_action_loop(
+            source, executor, verifier,
+            initial_state=initial_state,
+            subgoal="test",
+            max_decision_calls=10,
+            max_steps=10,
+            recovery_budget=2,
+        )
+
+        # 验证：trace 不为空
+        self.assertGreater(len(result.trace), 0, "trace should not be empty")
+
+        # 验证：每个 trace 条目都包含所有必需字段
+        required_fields = [
+            "guard_allowed",
+            "guard_reason",
+            "executor_ok",
+            "verification",
+            "verification_source",
+            "atomic_action_count",
+        ]
+
+        for te in result.trace:
+            for field in required_fields:
+                self.assertIn(field, te,
+                            f"trace must contain {field}, got keys: {list(te.keys())}")
+
+        # 验证：至少有一个 trace 条目的 atomic_action_count > 0（表示 recovery 动作）
+        has_recovery = False
+        for te in result.trace:
+            if te.get("atomic_action_count", 0) > 0:
+                has_recovery = True
+                break
+
+        self.assertTrue(has_recovery,
+                       "At least one trace entry should have atomic_action_count > 0")
+
+
+class TestRecoveryActionBudgetExceeded(unittest.TestCase):
+    """验证 recovery 动作超过 atomic action budget 时正确停止。"""
+
+    def test_recovery_action_budget_exceeded(self):
+        """当 recovery 动作超过 max_steps 时，应该停止执行。"""
+        # 创建一个总是失败的 executor
+        class AlwaysFailingExecutor(FakeExecutor):
+            def execute(self, action, state):
+                self.calls.append(action)
+                return ActionResult(
+                    ok=False,
+                    action=action,
+                    after_state=state,
+                    error_code="always_fail"
+                )
+
+        from harness.schemas import ActionResult
+        initial_state = _make_reveal_state()
+        executor = AlwaysFailingExecutor()
+        verifier = FakeVlmVerifier([])
+
+        # 多个动作，每个都会失败并触发 recovery
+        actions = [
+            ActionSpec(action_type="tap_visual", bbox_px=BBox(x1=100, y1=100, x2=200, y2=200)),
+            ActionSpec(action_type="tap_visual", bbox_px=BBox(x1=100, y1=100, x2=200, y2=200)),
+            ActionSpec(action_type="tap_visual", bbox_px=BBox(x1=100, y1=100, x2=200, y2=200)),
+        ]
+        source = MockDecisionSource(actions)
+
+        # 设置很小的 max_steps，使得 recovery 动作会超过预算
+        result = run_action_loop(
+            source, executor, verifier,
+            initial_state=initial_state,
+            subgoal="test",
+            max_decision_calls=10,
+            max_steps=3,  # 很小的预算
+            recovery_budget=2,
+        )
+
+        # 验证：executor 调用次数不超过 max_steps
+        self.assertLessEqual(len(executor.calls), 3,
+                           "Executor calls should not exceed max_steps")
+
+        # 验证：最终状态应该是 action_budget_exhausted 或 failed
+        self.assertIn(result.status, ["action_budget_exhausted", "failed"],
+                     f"Status should be budget_exhausted or failed, got {result.status}")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -216,11 +216,11 @@ class TestSelectedRoleTransition(unittest.TestCase):
         self.assertFalse(result.ok)
 
 
-class TestMultiOCRTokens(unittest.TestCase):
-    """验证多 OCR token 使用"全集出现"语义。"""
+class TestSingleOCRTokens(unittest.TestCase):
+    """验证单个 OCR token 出现即视为成功。"""
 
     def test_all_expected_tokens_must_appear(self):
-        """所有期望的 OCR token 都必须出现才视为成功。"""
+        """期望的单个 OCR token 出现即视为成功。"""
         # 初始状态：ocr_tokens = {"title"}
         initial_state = _make_reveal_state(
             control_bar_visible=False,
@@ -303,6 +303,7 @@ class TestCompleteAfterState(unittest.TestCase):
 
         # 创建初始状态
         initial_state = _make_reveal_state(
+            fingerprint="initial_fp",
             control_bar_visible=False,
             ocr_tokens={"title"},
             selected_role=None,
@@ -310,6 +311,7 @@ class TestCompleteAfterState(unittest.TestCase):
 
         # 创建执行后的完整状态
         after_state = _make_reveal_state(
+            fingerprint="after_fp",
             control_bar_visible=True,  # control_bar 变为可见
             ocr_tokens={"title", "play", "pause"},  # OCR tokens 更新
             selected_role="play_button",  # selected_role 更新
@@ -340,6 +342,32 @@ class TestCompleteAfterState(unittest.TestCase):
         # 验证：执行的动作都是 ActionSpec 类型
         for executed_action in executor.calls:
             self.assertIsInstance(executed_action, ActionSpec)
+
+        # 验证：final_state 不为空
+        self.assertIsNotNone(result.final_state)
+
+        # 验证：final_state 的 fingerprint 来自 after_state
+        self.assertEqual(result.final_state.fingerprint, after_state.fingerprint)
+        self.assertNotEqual(result.final_state.fingerprint, initial_state.fingerprint)
+
+        # 验证：final_state 的 control_bar_visible 来自 after_state
+        self.assertEqual(result.final_state.control_bar_visible, after_state.control_bar_visible)
+        self.assertNotEqual(result.final_state.control_bar_visible, initial_state.control_bar_visible)
+
+        # 验证：final_state 的 ocr_tokens 来自 after_state
+        self.assertEqual(result.final_state.ocr_tokens, after_state.ocr_tokens)
+        self.assertNotEqual(result.final_state.ocr_tokens, initial_state.ocr_tokens)
+
+        # 验证：final_state 的 selected_role 来自 after_state
+        self.assertEqual(result.final_state.selected_role, after_state.selected_role)
+        self.assertNotEqual(result.final_state.selected_role, initial_state.selected_role)
+
+        # 验证：final_state 的 package 和 activity 来自 after_state
+        self.assertEqual(result.final_state.package, after_state.package)
+        self.assertEqual(result.final_state.activity, after_state.activity)
+
+        # 验证：final_state 的 candidate_map 来自 after_state
+        self.assertEqual(result.final_state.candidate_map, after_state.candidate_map)
 
 
 if __name__ == "__main__":

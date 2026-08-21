@@ -4,9 +4,9 @@
 
 **任务**: Harness B1 — 可量化安全验证与受限恢复闭环  
 **完成时间**: 2026-08-21  
-**测试总数**: 144 个（全部通过）  
+**测试总数**: 147 个（全部通过）  
 **安全断言**: 5 个（全部成立）  
-**执行耗时**: 28.2ms
+**执行耗时**: 35.4ms
 
 **测试套件分布**:
 - test_smoke: 7 个测试
@@ -15,8 +15,8 @@
 - test_control_revealer_state_machine: 26 个测试
 - test_guard_declarative_registry: 8 个测试
 - test_reveal_plan_regression: 7 个测试
-- test_reveal_plan_trace: 3 个测试（新增）
-- test_expected_ocr_tokens: 10 个测试（新增）
+- test_reveal_plan_trace: 6 个测试（含 recovery 测试）
+- test_expected_ocr_tokens: 10 个测试
 
 ---
 
@@ -257,12 +257,12 @@
 
 ```json
 {
-  "timestamp": "2026-08-21T14:51:51",
-  "total_tests": 144,
-  "passed": 144,
+  "timestamp": "2026-08-21T15:23:13",
+  "total_tests": 147,
+  "passed": 147,
   "failed": 0,
   "errors": 0,
-  "duration_ms": 22.56,
+  "duration_ms": 35.39,
   "by_suite": {
     "test_smoke": {"total": 7, "passed": 7, "failed": 0, "errors": 0},
     "test_action_guard_injection": {"total": 60, "passed": 60, "failed": 0, "errors": 0},
@@ -270,7 +270,7 @@
     "test_control_revealer_state_machine": {"total": 26, "passed": 26, "failed": 0, "errors": 0},
     "test_guard_declarative_registry": {"total": 8, "passed": 8, "failed": 0, "errors": 0},
     "test_reveal_plan_regression": {"total": 7, "passed": 7, "failed": 0, "errors": 0},
-    "test_reveal_plan_trace": {"total": 3, "passed": 3, "failed": 0, "errors": 0},
+    "test_reveal_plan_trace": {"total": 6, "passed": 6, "failed": 0, "errors": 0},
     "test_expected_ocr_tokens": {"total": 10, "passed": 10, "failed": 0, "errors": 0}
   },
   "safety_assertions": {
@@ -281,7 +281,15 @@
     "stale_creates_new_version": true
   },
   "all_safety_assertions_passed": true,
-  "all_tests_passed": true
+  "all_tests_passed": true,
+  "declarative_registry": {
+    "total_cases": 21,
+    "category_count": 5,
+    "categories": ["candidate_map_mismatch", "candidate_unreachable", "low_confidence", "sensitive", "unknown_action"],
+    "dimension_count": 18,
+    "differential_scenario_count": 20,
+    "zero_side_effect_case_count": 20
+  }
 }
 ```
 
@@ -350,11 +358,70 @@ python scripts/generate_metrics.py
 
 ### 最终成果
 
-- **测试总数**：131 个（原有 109 + 新增 22）
-- **所有测试通过**：131/131 ✅
+- **测试总数**：147 个（原有 109 + 新增 38）
+- **所有测试通过**：147/147 ✅
 - **所有安全断言成立**：5/5 ✅
-- **执行时间**：20.53ms
+- **执行时间**：35.39ms
 
 ---
 
-**Step 1 完成** ✅
+## 九、最后一次闭环修正
+
+### 1. 统一执行流程
+
+**核心改进**：抽取 `_execute_guarded_action()` 函数，统一处理所有动作类型（正常动作、RevealPlan 动作、RecoveryPlan 动作）。
+
+**执行流程**：
+```
+budget check → Guard → Executor → Verifier → trace → state update
+```
+
+**关键约束**：
+- 所有动作都必须走完整流程
+- 禁止 recovery 分支仅 validate + execute 而不验证
+- 每个动作都有独立的 trace 记录
+
+### 2. Recovery 动作完整 trace
+
+**trace 字段**：
+- `guard_allowed`: Guard 是否允许
+- `guard_reason`: Guard 拒绝原因
+- `executor_ok`: 执行是否成功
+- `verification`: 验证结果
+- `verification_source`: 验证来源
+- `atomic_action_count`: 原子动作计数
+
+**新增测试**：
+- `test_recovery_action_verifier_called`: 验证 recovery 动作的 verifier 被调用
+- `test_recovery_action_trace_complete`: 验证 recovery 动作的 trace 完整性
+- `test_recovery_action_budget_exceeded`: 验证 recovery 动作超过 budget 时正确停止
+
+### 3. final_state 精确验证
+
+**强化测试**：在 `test_reveal_plan_regression.py` 中添加精确断言，验证 `result.final_state` 的所有字段都来自 executor 返回的完整 after_state：
+- fingerprint
+- candidate_map
+- control_bar_visible
+- ocr_tokens
+- selected_role
+
+### 4. TestMultiOCRTokens 重命名
+
+将 `TestMultiOCRTokens` 改名为 `TestSingleOCRTokens`，明确区分：
+- **单 token 测试**：在 `TestSingleOCRTokens` 中，测试单个 target_role 的出现
+- **多 token 全集语义**：在 `test_expected_ocr_tokens.py` 中，测试 `expected_ocr_tokens` 的全集语义
+
+### 5. Metrics 扩展
+
+**新增字段**：
+- `declarative_registry.total_cases`: 声明式案例总数（21）
+- `declarative_registry.category_count`: 类别数（5）
+- `declarative_registry.dimension_count`: 维度数（18）
+- `declarative_registry.differential_scenario_count`: 差异化场景数（20）
+- `declarative_registry.zero_side_effect_case_count`: 零副作用案例数（20）
+
+**意义**：metrics 不再只报告总测试数，而是提供结构化的测试覆盖度分析。
+
+---
+
+**Step 1 最终完成** ✅

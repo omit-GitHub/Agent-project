@@ -200,6 +200,62 @@ def verify_safety_assertions(test_results):
     return assertions
 
 
+# ─────────────── Declarative Registry 汇总 ───────────────
+
+def compute_declarative_registry_stats():
+    """从 test_guard_declarative_registry 汇总统计信息。"""
+    try:
+        # 导入 GUARD_CASES
+        sys.path.insert(0, os.path.join(_PROJECT_ROOT, "tests"))
+        from test_guard_declarative_registry import GUARD_CASES
+
+        # 统计 category
+        categories = set()
+        for case in GUARD_CASES:
+            categories.add(case.get("category", "unknown"))
+
+        # 统计 dimension
+        dimensions = set()
+        for case in GUARD_CASES:
+            dimensions.add(case.get("dimension", "unknown"))
+
+        # 统计 differential_scenario_count（差异化场景数量）
+        # 差异化场景：expected_loop_status 不是 "success" 的场景
+        differential_scenarios = 0
+        for case in GUARD_CASES:
+            status = case.get("expected_loop_status", "")
+            if status in ("guard_reject", "needs_user_confirmation", "needs_refinement", "blocked"):
+                differential_scenarios += 1
+
+        # 统计 zero_side_effect_case_count（零副作用场景数量）
+        # 零副作用场景：expected_executor_calls == 0 的场景
+        zero_side_effect_cases = 0
+        for case in GUARD_CASES:
+            if case.get("expected_executor_calls", -1) == 0:
+                zero_side_effect_cases += 1
+
+        return {
+            "total_cases": len(GUARD_CASES),
+            "category_count": len(categories),
+            "categories": sorted(list(categories)),
+            "dimension_count": len(dimensions),
+            "dimensions": sorted(list(dimensions)),
+            "differential_scenario_count": differential_scenarios,
+            "zero_side_effect_case_count": zero_side_effect_cases,
+        }
+    except Exception as e:
+        print(f"[WARN] 无法汇总 declarative registry: {e}")
+        return {
+            "total_cases": 0,
+            "category_count": 0,
+            "categories": [],
+            "dimension_count": 0,
+            "dimensions": [],
+            "differential_scenario_count": 0,
+            "zero_side_effect_case_count": 0,
+        }
+
+
 # ─────────────── 按 suite 统计 ───────────────
 
 def compute_by_suite(test_results):
@@ -272,6 +328,16 @@ def main():
         print(f"  {status} {name}")
     print()
 
+    # Declarative Registry 汇总
+    print("[3.5/4] 汇总 Declarative Registry...")
+    declarative_stats = compute_declarative_registry_stats()
+    print(f"  总案例数: {declarative_stats['total_cases']}")
+    print(f"  类别数: {declarative_stats['category_count']}")
+    print(f"  维度数: {declarative_stats['dimension_count']}")
+    print(f"  差异化场景数: {declarative_stats['differential_scenario_count']}")
+    print(f"  零副作用案例数: {declarative_stats['zero_side_effect_case_count']}")
+    print()
+
     # 输出文件
     print("[4/4] 生成输出文件...")
     metrics = {
@@ -285,6 +351,7 @@ def main():
         "safety_assertions": assertions,
         "all_safety_assertions_passed": all(assertions.values()),
         "all_tests_passed": run_result["failed"] == 0 and run_result["errors"] == 0,
+        "declarative_registry": declarative_stats,
     }
 
     json_path = os.path.join(_PROJECT_ROOT, "metrics.json")

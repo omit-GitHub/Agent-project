@@ -163,6 +163,7 @@ def run_action_loop(
             "verification_source": None,
             "recovery_count": recovery_count,
             "strategy_id": strategy_id,
+            "atomic_action_count": atomic_action_count,
         }
 
     def _return(ok, status, msg, verification=None):
@@ -175,6 +176,190 @@ def run_action_loop(
             final_state=current_state,
         )
 
+    def _execute_guarded_action(action, step_idx, strategy_id=None, use_reveal_verify=False):
+        """统一执行动作：budget check → Guard → Executor → Verifier → trace → state update。
+
+        Args:
+            action: 要执行的动作
+            step_idx: 步骤索引
+            strategy_id: 策略 ID（用于 trace）
+            use_reveal_verify: 是否使用 reveal 成功验证（用于 RevealPlan 动作）
+
+        Returns:
+            dict: {
+                "status": "success" | "failed" | "blocked" | "budget_exhausted" | "not_yet" | "unknown",
+                "guard_result": GuardDecision | None,
+                "action_result": ActionResult | None,
+                "verification": VerificationResult | None,
+                "trace_entry": dict,
+            }
+        """
+        nonlocal atomic_action_count, current_state, last_verification
+
+        # budget check
+        if atomic_action_count >= max_steps:
+            return {
+                "status": "budget_exhausted",
+                "guard_result": None,
+                "action_result": None,
+                "verification": None,
+                "trace_entry": None,
+            }
+
+        # Guard validation
+        guard_result = validate_action(
+            action, current_state, subgoal,
+            guard.failed_candidates, guard=guard, config=config,
+        )
+
+        # 创建 trace 条目
+        te = _make_trace(step_idx, action, strategy_id)
+        te["guard_reason"] = guard_result.reason
+        te["guard_allowed"] = guard_result.allowed
+        te["guard_risk_level"] = guard_result.risk_level
+        te["guard_requires_refinement"] = guard_result.requires_refinement
+        te["atomic_action_count"] = atomic_action_count
+
+        # Guard 拒绝处理
+        if not guard_result.allowed:
+            te["executor_ok"] = None
+            te["verification"] = None
+            te["verification_source"] = None
+            trace.append(te)
+
+            return {
+                "status": "blocked",
+                "guard_result": guard_result,
+                "action_result": None,
+                "verification": None,
+                "trace_entry": te,
+            }
+
+        # Guard 通过，执行动作
+        before_state = current_state
+        action_result = executor.execute(action, current_state)
+        atomic_action_count += 1
+        te["executor_ok"] = action_result.ok
+        te["atomic_action_count"] = atomic_action_count
+
+        if not action_result.ok:
+            trace.append(te)
+            if action.candidate_id:
+                guard.record_failure(current_state.fingerprint, action.candidate_id)
+
+            return {
+                "status": "failed",
+                "guard_result": guard_result,
+                "action_result": action_result,
+                "verification": None,
+                "trace_entry": te,
+            }
+
+        # 执行成功，更新状态
+        after_state = action_result.after_state
+
+        # Verifier verification
+        if use_reveal_verify:
+            # 使用 reveal 成功验证
+            success, reason = _verify_reveal_success(
+                before_state, after_state,
+                target_role=target_role,
+                expected_ocr_tokens=expected_ocr_tokens,
+            )
+            verification = VerificationResult(
+                verification=VerificationStatus.success if success else VerificationStatus.not_yet,
+                source="local",
+                reason=reason,
+            )
+        else:
+            # 使用标准 verifier
+            verification = verifier.verify(before_state, after_state, action)
+
+        last_verification = verification
+        te["verification"] = verification.verification.value
+        te["verification_source"] = verification.source.value
+
+        # 记录 steps
+        steps.append({
+            "step": len(steps),
+            "action": action.action_type,
+            "target": action.candidate_id or action.target_role,
+            "ok": action_result.ok,
+            "detail": action_result.detail,
+            "verify": verification.verification.value,
+        })
+
+        # 更新状态（无论验证结果如何）
+        current_state = after_state
+
+        # 记录 trace
+        trace.append(te)
+
+        # 根据验证结果决定状态
+        if verification.verification == VerificationStatus.success:
+            return {
+                "status": "success",
+                "guard_result": guard_result,
+                "action_result": action_result,
+                "verification": verification,
+                "trace_entry": te,
+            }
+        elif verification.verification == VerificationStatus.failed:
+            if action.candidate_id:
+                guard.record_failure(current_state.fingerprint, action.candidate_id)
+            return {
+                "status": "failed",
+                "guard_result": guard_result,
+                "action_result": action_result,
+                "verification": verification,
+                "trace_entry": te,
+            }
+        elif verification.verification == VerificationStatus.unknown:
+            return {
+                "status": "unknown",
+                "guard_result": guard_result,
+                "action_result": action_result,
+                "verification": verification,
+                "trace_entry": te,
+            }
+        else:  # not_yet
+            return {
+                "status": "not_yet",
+                "guard_result": guard_result,
+                "action_result": action_result,
+                "verification": verification,
+                "trace_entry": te,
+            }
+
+    def _execute_recovery_actions(actions, failure_reason):
+        """执行恢复动作序列，每个动作都走完整流程并记录 trace。"""
+        nonlocal recovery_count, current_state
+
+        if recovery_count >= recovery_budget:
+            return False
+
+        recovery_count += 1
+        for recovery_action in actions:
+            result = _execute_guarded_action(
+                recovery_action,
+                len(steps),
+                strategy_id=None,
+                use_reveal_verify=False,
+            )
+
+            # 如果预算耗尽，立即返回
+            if result["status"] == "budget_exhausted":
+                return False
+
+            # 如果动作成功，继续执行下一个恢复动作
+            if result["status"] == "success":
+                continue
+
+            # 如果动作失败或被阻止，继续尝试下一个
+            # （恢复序列中的动作可能部分失败）
+
+        return True
+
     # ── 主决策循环 ──
     while True:
         # 决策预算检查
@@ -184,9 +369,7 @@ def run_action_loop(
 
         action = decision_source.next_action(current_state)
         decision_calls += 1
-        before_state = current_state
         step_idx = len(steps)
-        strategy_id = None
 
         # ── ask_user ──
         if action.action_type == "ask_user":
@@ -220,83 +403,23 @@ def run_action_loop(
                 # 逐条执行 plan.actions
                 reveal_success = False
                 for plan_action in plan.actions:
-                    # 动作预算检查
-                    if atomic_action_count >= max_steps:
+                    result = _execute_guarded_action(
+                        plan_action,
+                        len(steps),
+                        strategy_id=strategy_id,
+                        use_reveal_verify=True,
+                    )
+
+                    # 预算耗尽
+                    if result["status"] == "budget_exhausted":
                         return _return(False, "action_budget_exhausted",
                                        f"max_steps={max_steps} reached during reveal")
 
-                    # Guard 校验
-                    g = validate_action(
-                        plan_action, current_state, subgoal,
-                        guard.failed_candidates, guard=guard, config=config,
-                    )
-
-                    # 创建 trace 条目（无论是否通过 Guard）
-                    te = _make_trace(step_idx, plan_action, strategy_id)
-                    te["guard_reason"] = g.reason
-                    te["guard_allowed"] = g.allowed
-                    te["guard_risk_level"] = g.risk_level
-                    te["guard_requires_refinement"] = g.requires_refinement
-
-                    if not g.allowed or g.requires_refinement:
-                        # Guard 拒绝：记录 trace 但不执行
-                        te["executor_ok"] = None
-                        te["verification"] = None
-                        trace.append(te)
-                        continue  # 跳过不合格动作
-
-                    # 执行
-                    r_before = current_state
-                    start_time = time.time()
-                    result = executor.execute(plan_action, current_state)
-                    atomic_action_count += 1
-
-                    if not result.ok:
-                        te["executor_ok"] = result.ok
-                        trace.append(te)
-                        continue
-
-                    after = result.after_state
-
-                    # 验证 reveal 成功
-                    success, reason = _verify_reveal_success(
-                        r_before, after,
-                        target_role=target_role,
-                        expected_ocr_tokens=expected_ocr_tokens,
-                    )
-                    latency_ms = (time.time() - start_time) * 1000
-
-                    te["executor_ok"] = result.ok
-                    steps.append({
-                        "step": len(steps),
-                        "action": plan_action.action_type,
-                        "target": plan_action.candidate_id or plan_action.target_role,
-                        "ok": result.ok,
-                        "detail": result.detail,
-                    })
-
-                    if success:
-                        control_revealer.record_success(strategy_id, latency_ms)
-                        # 使用完整 after_state
-                        current_state = after
-                        reveal_success = True
-                        trace.append(te)
-                        break
-
-                    # 普通 verifier 也检查一下
-                    v = verifier.verify(r_before, after, plan_action)
-                    te["verification"] = v.verification.value
-                    te["verification_source"] = v.source.value
-                    trace.append(te)
-
-                    if v.verification == VerificationStatus.success:
-                        control_revealer.record_success(strategy_id, latency_ms)
-                        current_state = after
+                    # 验证成功
+                    if result["status"] == "success":
+                        control_revealer.record_success(strategy_id, 0)
                         reveal_success = True
                         break
-
-                    # 更新状态继续
-                    current_state = after
 
                 if reveal_success:
                     continue  # reveal 成功，回到决策循环
@@ -305,25 +428,10 @@ def run_action_loop(
                 control_revealer.record_semantic_failure(strategy_id)
 
                 # 尝试恢复
-                if recovery_count < recovery_budget:
-                    recovery_count += 1
-                    recovery_actions = recovery_planner.plan(
-                        action, current_state, "reveal_failed", recovery_count,
-                    )
-                    for ra in recovery_actions:
-                        if atomic_action_count >= max_steps:
-                            return _return(False, "action_budget_exhausted",
-                                           "max_steps reached during recovery")
-                        rg = validate_action(
-                            ra, current_state, subgoal,
-                            guard.failed_candidates, guard=guard, config=config,
-                        )
-                        if not rg.allowed:
-                            continue
-                        rr = executor.execute(ra, current_state)
-                        atomic_action_count += 1
-                        if rr.ok:
-                            current_state = rr.after_state
+                recovery_actions = recovery_planner.plan(
+                    action, current_state, "reveal_failed", recovery_count + 1,
+                )
+                if _execute_recovery_actions(recovery_actions, "reveal_failed"):
                     continue
 
                 return _return(False, "reveal_failed",
@@ -334,174 +442,74 @@ def run_action_loop(
                 trace.append(te)
                 continue
 
-        # ── Guard 校验 ──
-        decision = validate_action(
-            action, current_state, subgoal,
-            guard.failed_candidates, guard=guard, config=config,
+        # ── 正常动作 ──
+        result = _execute_guarded_action(
+            action,
+            step_idx,
+            strategy_id=None,
+            use_reveal_verify=False,
         )
 
-        te = _make_trace(step_idx, action)
-        te["guard_reason"] = decision.reason
-        te["guard_allowed"] = decision.allowed
-        te["guard_risk_level"] = decision.risk_level
-        te["guard_requires_refinement"] = decision.requires_refinement
-
-        if not decision.allowed:
-            trace.append(te)
-
-            # requires_refinement → 受限恢复
-            if decision.requires_refinement:
-                if recovery_count < recovery_budget:
-                    recovery_count += 1
-                    recovery_actions = recovery_planner.plan(
-                        action, current_state, "needs_refinement", recovery_count,
-                    )
-                    for ra in recovery_actions:
-                        if atomic_action_count >= max_steps:
-                            return _return(False, "action_budget_exhausted",
-                                           "max_steps reached during recovery")
-                        rg = validate_action(
-                            ra, current_state, subgoal,
-                            guard.failed_candidates, guard=guard, config=config,
-                        )
-                        if not rg.allowed:
-                            continue
-                        rr = executor.execute(ra, current_state)
-                        atomic_action_count += 1
-                        if rr.ok:
-                            current_state = rr.after_state
-                    continue
-                return _return(False, "needs_refinement",
-                               f"refinement needed: {decision.reason}")
-
-            # risk_level=high → guard_reject
-            if decision.risk_level == "high":
-                return _return(False, "guard_reject",
-                               f"blocked (high risk): {decision.reason}")
-
-            # risk_level=medium → needs_user_confirmation
-            if decision.risk_level == "medium":
-                return _return(False, "needs_user_confirmation",
-                               f"blocked (medium risk): {decision.reason}")
-
-            # 其他 → 受限恢复
-            if recovery_count < recovery_budget:
-                recovery_count += 1
-                recovery_actions = recovery_planner.plan(
-                    action, current_state, decision.error_code or "blocked", recovery_count,
-                )
-                for ra in recovery_actions:
-                    if atomic_action_count >= max_steps:
-                        return _return(False, "action_budget_exhausted",
-                                       "max_steps reached during recovery")
-                    rg = validate_action(
-                        ra, current_state, subgoal,
-                        guard.failed_candidates, guard=guard, config=config,
-                    )
-                    if not rg.allowed:
-                        continue
-                    rr = executor.execute(ra, current_state)
-                    atomic_action_count += 1
-                    if rr.ok:
-                        current_state = rr.after_state
-                continue
-            return _return(False, "blocked", f"blocked: {decision.reason}")
-
-        # ── 执行 ──
-        if atomic_action_count >= max_steps:
+        # 预算耗尽
+        if result["status"] == "budget_exhausted":
             return _return(False, "action_budget_exhausted",
                            f"max_steps={max_steps} reached")
 
-        result = executor.execute(action, current_state)
-        atomic_action_count += 1
-        te["executor_ok"] = result.ok
+        # Guard 拒绝
+        if result["status"] == "blocked":
+            guard_result = result["guard_result"]
 
-        steps.append({
-            "step": len(steps),
-            "action": action.action_type,
-            "target": action.candidate_id or action.target_role,
-            "ok": result.ok,
-            "detail": result.detail,
-        })
-
-        if not result.ok:
-            if action.candidate_id:
-                guard.record_failure(current_state.fingerprint, action.candidate_id)
-            trace.append(te)
-            # 尝试恢复
-            if recovery_count < recovery_budget:
-                recovery_count += 1
+            # requires_refinement → 受限恢复
+            if guard_result.requires_refinement:
                 recovery_actions = recovery_planner.plan(
-                    action, current_state, result.error_code or "execution_failed", recovery_count,
+                    action, current_state, "needs_refinement", recovery_count + 1,
                 )
-                for ra in recovery_actions:
-                    if atomic_action_count >= max_steps:
-                        return _return(False, "action_budget_exhausted",
-                                       "max_steps reached during recovery")
-                    rg = validate_action(
-                        ra, current_state, subgoal,
-                        guard.failed_candidates, guard=guard, config=config,
-                    )
-                    if not rg.allowed:
-                        continue
-                    rr = executor.execute(ra, current_state)
-                    atomic_action_count += 1
-                    if rr.ok:
-                        current_state = rr.after_state
+                if _execute_recovery_actions(recovery_actions, "needs_refinement"):
+                    continue
+                return _return(False, "needs_refinement",
+                               f"refinement needed: {guard_result.reason}")
+
+            # risk_level=high → guard_reject
+            if guard_result.risk_level == "high":
+                return _return(False, "guard_reject",
+                               f"blocked (high risk): {guard_result.reason}")
+
+            # risk_level=medium → needs_user_confirmation
+            if guard_result.risk_level == "medium":
+                return _return(False, "needs_user_confirmation",
+                               f"blocked (medium risk): {guard_result.reason}")
+
+            # 其他 → 受限恢复
+            recovery_actions = recovery_planner.plan(
+                action, current_state, guard_result.error_code or "blocked", recovery_count + 1,
+            )
+            if _execute_recovery_actions(recovery_actions, guard_result.error_code or "blocked"):
                 continue
-            return _return(False, "failed", result.error_code or "execution failed")
+            return _return(False, "blocked", f"blocked: {guard_result.reason}")
 
-        after_state = result.after_state
-
-        # ── 验证 ──
-        verification = verifier.verify(before_state, after_state, action)
-        last_verification = verification
-        te["verification"] = verification.verification.value
-        te["verification_source"] = verification.source.value
-        steps[-1]["verify"] = verification.verification.value
-
-        # ── success → 唯一 ok=True 出口 ──
-        if verification.verification == VerificationStatus.success:
-            trace.append(te)
-            return _return(True, "success", verification.reason, verification)
-
-        # ── failed → 记录并尝试恢复 ──
-        if verification.verification == VerificationStatus.failed:
-            if action.candidate_id:
-                guard.record_failure(current_state.fingerprint, action.candidate_id)
-            trace.append(te)
-            if recovery_count < recovery_budget:
-                recovery_count += 1
-                current_state = after_state
-                recovery_actions = recovery_planner.plan(
-                    action, current_state, "verification_failed", recovery_count,
-                )
-                for ra in recovery_actions:
-                    if atomic_action_count >= max_steps:
-                        return _return(False, "action_budget_exhausted",
-                                       "max_steps reached during recovery")
-                    rg = validate_action(
-                        ra, current_state, subgoal,
-                        guard.failed_candidates, guard=guard, config=config,
-                    )
-                    if not rg.allowed:
-                        continue
-                    rr = executor.execute(ra, current_state)
-                    atomic_action_count += 1
-                    if rr.ok:
-                        current_state = rr.after_state
+        # 执行失败
+        if result["status"] == "failed":
+            recovery_actions = recovery_planner.plan(
+                action, current_state, "execution_failed", recovery_count + 1,
+            )
+            if _execute_recovery_actions(recovery_actions, "execution_failed"):
                 continue
-            return _return(False, "failed", verification.reason)
+            action_result = result["action_result"]
+            return _return(False, "failed",
+                           action_result.error_code if action_result else "execution failed")
 
-        # ── unknown → 有限重观察 ──
-        if verification.verification == VerificationStatus.unknown:
-            trace.append(te)
-            if recovery_count < recovery_budget:
-                recovery_count += 1
-                current_state = after_state
+        # 验证成功
+        if result["status"] == "success":
+            return _return(True, "success", result["verification"].reason, result["verification"])
+
+        # 验证失败
+        if result["status"] == "unknown":
+            recovery_actions = recovery_planner.plan(
+                action, current_state, "verification_failed", recovery_count + 1,
+            )
+            if _execute_recovery_actions(recovery_actions, "verification_failed"):
                 continue
-            return _return(False, "unknown_exhausted", verification.reason)
+            return _return(False, "unknown_exhausted", result["verification"].reason)
 
-        # ── not_yet → 继续 ──
-        trace.append(te)
-        current_state = after_state
+        # not_yet → 继续循环
+        # current_state 已经在 _execute_guarded_action 中更新
