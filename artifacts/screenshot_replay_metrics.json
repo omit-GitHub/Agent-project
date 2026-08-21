@@ -1,0 +1,61 @@
+{
+  "total_screenshots": 103,
+  "screenshots_with_candidates": 103,
+  "screenshots_without_candidates": 0,
+  "ocr_available_screenshots": 0,
+  "visual_available_screenshots": 103,
+  "total_replay_cases": 1236,
+  "matched_cases": 1236,
+  "all_assertions_pass": true,
+  "per_case": {
+    "bbox_bottom_out": {
+      "count": 103,
+      "matched": 103
+    },
+    "bbox_negative": {
+      "count": 103,
+      "matched": 103
+    },
+    "bbox_right_out": {
+      "count": 103,
+      "matched": 103
+    },
+    "inject_delete_risk": {
+      "count": 103,
+      "matched": 103
+    },
+    "inject_payment_risk": {
+      "count": 103,
+      "matched": 103
+    },
+    "low_clickable_likelihood": {
+      "count": 103,
+      "matched": 103
+    },
+    "low_confidence": {
+      "count": 103,
+      "matched": 103
+    },
+    "nonexistent_candidate": {
+      "count": 103,
+      "matched": 103
+    },
+    "normal_tap": {
+      "count": 103,
+      "matched": 103
+    },
+    "ocr_only_no_refine": {
+      "count": 103,
+      "matched": 103
+    },
+    "previously_failed": {
+      "count": 103,
+      "matched": 103
+    },
+    "stale_candidate_map": {
+      "count": 103,
+      "matched": 103
+    }
+  },
+  "red_box_note": "无验证红框标注集，不报告 recall"
+}
