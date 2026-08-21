@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-08-21T11:11:10",
+  "total_tests": 109,
+  "passed": 109,
+  "failed": 0,
+  "errors": 0,
+  "duration_ms": 21.78,
+  "by_suite": {
+    "test_smoke": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "errors": 0
+    },
+    "test_action_guard_injection": {
+      "total": 55,
+      "passed": 55,
+      "failed": 0,
+      "errors": 0
+    },
+    "test_verifier_four_state": {
+      "total": 23,
+      "passed": 23,
+      "failed": 0,
+      "errors": 0
+    },
+    "test_control_revealer_state_machine": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0,
+      "errors": 0
+    }
+  },
+  "safety_assertions": {
+    "guard_rejection_executor_calls_zero": true,
+    "unknown_never_leads_to_success": true,
+    "expected_package_requires_transition": true,
+    "revealer_rejects_raw_dict": true,
+    "stale_creates_new_version": true
+  },
+  "all_safety_assertions_passed": true,
+  "all_tests_passed": true
+}
