@@ -175,3 +175,4 @@ class ActionLoopResult:
     recovery_count: int = 0
     decision_calls: int = 0
     atomic_action_count: int = 0
+    final_state: Any = None  # UiState | None，action_loop 结束时的最终状态

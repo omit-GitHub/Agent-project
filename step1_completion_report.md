@@ -4,7 +4,7 @@
 
 **任务**: Harness B1 — 可量化安全验证与受限恢复闭环  
 **完成时间**: 2026-08-21  
-**测试总数**: 141 个（全部通过）  
+**测试总数**: 144 个（全部通过）  
 **安全断言**: 5 个（全部成立）  
 **执行耗时**: 28.2ms
 
@@ -15,6 +15,7 @@
 - test_control_revealer_state_machine: 26 个测试
 - test_guard_declarative_registry: 8 个测试
 - test_reveal_plan_regression: 7 个测试
+- test_reveal_plan_trace: 3 个测试（新增）
 - test_expected_ocr_tokens: 10 个测试（新增）
 
 ---
@@ -161,6 +162,7 @@
    - `recovery_count: int`
    - `decision_calls: int`
    - `action_count: int`
+   - `final_state: UiState | None` — action_loop 结束时的最终状态，来自完整的 after_state
 
 ---
 
@@ -173,8 +175,10 @@
 | `test_control_revealer_state_machine.py` | 26 | active/probation/stale、基础设施失败不污染、版本化、plan() API |
 | `test_guard_declarative_registry.py` | 8 | 声明式 case registry、阈值 epsilon、零副作用断言 |
 | `test_reveal_plan_regression.py` | 7 | RevealPlan 执行流程、requires_refinement 阻止、状态转移语义 |
+| `test_reveal_plan_trace.py` | 3 | trace 字段完整性、Guard 拒绝反例、敏感动作拦截 |
+| `test_expected_ocr_tokens.py` | 10 | 多 token 全集语义、部分出现、空集合、优先级 |
 | `test_smoke.py`（原有） | 7 | 向后兼容 |
-| **总计** | **131** | |
+| **总计** | **144** | |
 
 **5 个安全断言（全部成立）**：
 - ✅ `guard_rejection_executor_calls_zero`
@@ -211,6 +215,8 @@
 | `tests/test_control_revealer_state_machine.py` | 26 |
 | `tests/test_guard_declarative_registry.py` | 8 |
 | `tests/test_reveal_plan_regression.py` | 7 |
+| `tests/test_reveal_plan_trace.py` | 3 |
+| `tests/test_expected_ocr_tokens.py` | 10 |
 
 ### 新增的脚本
 | 文件 | 功能 |
@@ -251,19 +257,21 @@
 
 ```json
 {
-  "timestamp": "2026-08-21T14:32:18",
-  "total_tests": 131,
-  "passed": 131,
+  "timestamp": "2026-08-21T14:51:51",
+  "total_tests": 144,
+  "passed": 144,
   "failed": 0,
   "errors": 0,
-  "duration_ms": 27.02,
+  "duration_ms": 22.56,
   "by_suite": {
     "test_smoke": {"total": 7, "passed": 7, "failed": 0, "errors": 0},
     "test_action_guard_injection": {"total": 60, "passed": 60, "failed": 0, "errors": 0},
     "test_verifier_four_state": {"total": 23, "passed": 23, "failed": 0, "errors": 0},
     "test_control_revealer_state_machine": {"total": 26, "passed": 26, "failed": 0, "errors": 0},
     "test_guard_declarative_registry": {"total": 8, "passed": 8, "failed": 0, "errors": 0},
-    "test_reveal_plan_regression": {"total": 7, "passed": 7, "failed": 0, "errors": 0}
+    "test_reveal_plan_regression": {"total": 7, "passed": 7, "failed": 0, "errors": 0},
+    "test_reveal_plan_trace": {"total": 3, "passed": 3, "failed": 0, "errors": 0},
+    "test_expected_ocr_tokens": {"total": 10, "passed": 10, "failed": 0, "errors": 0}
   },
   "safety_assertions": {
     "guard_rejection_executor_calls_zero": true,

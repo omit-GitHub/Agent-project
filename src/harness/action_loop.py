@@ -172,6 +172,7 @@ def run_action_loop(
             recovery_count=recovery_count,
             decision_calls=decision_calls,
             atomic_action_count=atomic_action_count,
+            final_state=current_state,
         )
 
     # ── 主决策循环 ──
@@ -230,7 +231,18 @@ def run_action_loop(
                         guard.failed_candidates, guard=guard, config=config,
                     )
 
+                    # 创建 trace 条目（无论是否通过 Guard）
+                    te = _make_trace(step_idx, plan_action, strategy_id)
+                    te["guard_reason"] = g.reason
+                    te["guard_allowed"] = g.allowed
+                    te["guard_risk_level"] = g.risk_level
+                    te["guard_requires_refinement"] = g.requires_refinement
+
                     if not g.allowed or g.requires_refinement:
+                        # Guard 拒绝：记录 trace 但不执行
+                        te["executor_ok"] = None
+                        te["verification"] = None
+                        trace.append(te)
                         continue  # 跳过不合格动作
 
                     # 执行
@@ -240,6 +252,8 @@ def run_action_loop(
                     atomic_action_count += 1
 
                     if not result.ok:
+                        te["executor_ok"] = result.ok
+                        trace.append(te)
                         continue
 
                     after = result.after_state
@@ -252,10 +266,6 @@ def run_action_loop(
                     )
                     latency_ms = (time.time() - start_time) * 1000
 
-                    te = _make_trace(step_idx, plan_action, strategy_id)
-                    te["guard_reason"] = g.reason
-                    te["guard_allowed"] = g.allowed
-                    te["guard_risk_level"] = g.risk_level
                     te["executor_ok"] = result.ok
                     steps.append({
                         "step": len(steps),
