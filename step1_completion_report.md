@@ -4,9 +4,9 @@
 
 **任务**: Harness B1 — 可量化安全验证与受限恢复闭环  
 **完成时间**: 2026-08-21  
-**测试总数**: 131 个（全部通过）  
+**测试总数**: 141 个（全部通过）  
 **安全断言**: 5 个（全部成立）  
-**执行耗时**: 27.0ms
+**执行耗时**: 28.2ms
 
 **测试套件分布**:
 - test_smoke: 7 个测试
@@ -15,6 +15,7 @@
 - test_control_revealer_state_machine: 26 个测试
 - test_guard_declarative_registry: 8 个测试
 - test_reveal_plan_regression: 7 个测试
+- test_expected_ocr_tokens: 10 个测试（新增）
 
 ---
 
@@ -36,6 +37,14 @@
 - `expected_package` 成功要求 `before.package ≠ expected_package AND after.package == expected_package`
 - `expected_activity` 同理
 - 防止 before 已满足时的误判 success
+
+**多 token 全集语义验证**：
+- `ActionSpec` 新增 `expected_ocr_tokens: Optional[set]` 字段
+- 验证逻辑：`expected_ocr_tokens ⊆ (after.ocr_tokens - before.ocr_tokens)`
+- 所有期望 token 必须作为新 token 出现才算 success
+- 部分出现或已存在 → not_yet
+- 空集合或 None → 不触发此检查
+- 10 个专门测试覆盖各种场景
 
 ---
 

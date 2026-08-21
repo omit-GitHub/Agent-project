@@ -73,6 +73,7 @@ class LocalVerifier:
             "target_role": action.target_role,
             "expected_package": action.expected_package,
             "expected_activity": action.expected_activity,
+            "expected_ocr_tokens": sorted(action.expected_ocr_tokens) if action.expected_ocr_tokens else None,
         }
 
         # 1. expected_package 命中 — 要求状态转移 (before ≠ expected)
@@ -126,6 +127,19 @@ class LocalVerifier:
                     verification=VerificationStatus.success,
                     source=VerificationSource.local,
                     reason=f"target_role OCR token appeared: {action.target_role}",
+                    observed_state={**observed, "new_tokens": sorted(new_tokens)[:10]},
+                )
+
+        # 6. expected_ocr_tokens 多 token 全集语义
+        # 要求：所有 expected_ocr_tokens 都必须出现在 new_tokens 中
+        if action.expected_ocr_tokens:
+            new_tokens = after.ocr_tokens - before.ocr_tokens
+            missing_tokens = action.expected_ocr_tokens - new_tokens
+            if not missing_tokens:  # 全集出现
+                return VerificationResult(
+                    verification=VerificationStatus.success,
+                    source=VerificationSource.local,
+                    reason=f"all expected OCR tokens appeared: {sorted(action.expected_ocr_tokens)}",
                     observed_state={**observed, "new_tokens": sorted(new_tokens)[:10]},
                 )
 

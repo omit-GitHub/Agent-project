@@ -49,6 +49,7 @@ TEST_SUITES = [
     "tests.test_control_revealer_state_machine",
     "tests.test_guard_declarative_registry",
     "tests.test_reveal_plan_regression",
+    "tests.test_expected_ocr_tokens",
 ]
 
 

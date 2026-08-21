@@ -72,7 +72,7 @@ class ActionSpec:
     字段分组：
       - action_type：动作类型
       - 候选定位：candidate_id / candidate_map_fingerprint
-      - 页面期望：expected_screen_fingerprint / expected_package / expected_activity
+      - 页面期望：expected_screen_fingerprint / expected_package / expected_activity / expected_ocr_tokens
       - 目标语义：target_role / bbox_px / sensitive_hint
       - 动作参数：key / text / direction / distance / wait_ms
     """
@@ -82,10 +82,11 @@ class ActionSpec:
     candidate_id: Optional[str] = None
     candidate_map_fingerprint: Optional[str] = None  # vs state.candidate_map.screen_version
 
-    # 页面期望（三个独立维度，禁止混用）
+    # 页面期望（四个独立维度，禁止混用）
     expected_screen_fingerprint: Optional[str] = None  # vs state.fingerprint（防跨页点击）
     expected_package: Optional[str] = None              # vs state.package（Verifier 用）
     expected_activity: Optional[str] = None             # vs state.activity（Verifier 用）
+    expected_ocr_tokens: Optional[set] = None           # 多 token 全集语义：所有 token 必须出现
 
     # 目标语义
     target_role: Optional[str] = None
