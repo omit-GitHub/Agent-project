@@ -1,0 +1,15 @@
+{
+  "target_categories": [
+    "invalid_action",
+    "sensitive_action"
+  ],
+  "error_action_injected": 14,
+  "error_action_executed_baseline": 14,
+  "error_action_executed_harness": 4,
+  "error_action_execution_rate_baseline": 1.0,
+  "error_action_execution_rate_harness": 0.286,
+  "error_action_reduction": 0.714,
+  "guard_block_rate": 0.714,
+  "blocked_cases_with_zero_executor_calls": 10,
+  "requires_refinement_zero_executor_calls": 0
+}

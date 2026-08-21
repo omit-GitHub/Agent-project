@@ -1,0 +1,128 @@
+{
+  "basic": {
+    "total_scenarios": 34,
+    "outcome_matches": 20,
+    "outcome_match_rate": 0.588,
+    "executor_calls_matches": 20,
+    "executor_calls_match_rate": 0.588
+  },
+  "category": {
+    "category_distribution": {
+      "normal": 5,
+      "invalid_action": 8,
+      "sensitive_action": 6,
+      "hidden_controls": 5,
+      "recovery": 5,
+      "budget_exhaustion": 5
+    },
+    "category_outcome_match_rates": {
+      "normal": 1.0,
+      "invalid_action": 0.5,
+      "sensitive_action": 1.0,
+      "hidden_controls": 0.2,
+      "recovery": 0.8,
+      "budget_exhaustion": 0.0
+    }
+  },
+  "dimension": {
+    "dimension_distribution": {
+      "basic_tap_candidate": 1,
+      "basic_tap_visual": 1,
+      "basic_swipe": 1,
+      "basic_remote_key": 1,
+      "basic_type_text": 1,
+      "stale_candidate_map": 1,
+      "bbox_out_of_screen": 1,
+      "low_confidence": 1,
+      "low_clickable_likelihood": 1,
+      "previously_failed": 1,
+      "unknown_action_type": 1,
+      "candidate_map_package_mismatch": 1,
+      "tap_visual_fallback_disabled": 1,
+      "payment_risk": 1,
+      "delete_risk": 1,
+      "logout_risk": 1,
+      "sensitive_hint": 1,
+      "action_semantics_sensitive": 1,
+      "sensitive_category": 1,
+      "reveal_control_bar_success": 1,
+      "reveal_probation": 1,
+      "reveal_stale": 1,
+      "reveal_generic_fallback": 1,
+      "selected_role_transition": 1,
+      "reobservation_success": 1,
+      "candidate_switch_success": 1,
+      "localization_success": 1,
+      "reobservation_failed": 1,
+      "verifier_unknown_recovery": 1,
+      "decision_calls_exhaustion": 1,
+      "atomic_action_count_exhaustion": 1,
+      "recovery_count_exhaustion": 1,
+      "timeout_deadline_exhaustion": 1,
+      "multiple_budgets_exhaustion": 1
+    },
+    "dimension_outcome_match_rates": {
+      "basic_tap_candidate": 1.0,
+      "basic_tap_visual": 1.0,
+      "basic_swipe": 1.0,
+      "basic_remote_key": 1.0,
+      "basic_type_text": 1.0,
+      "stale_candidate_map": 1.0,
+      "bbox_out_of_screen": 1.0,
+      "low_confidence": 0.0,
+      "low_clickable_likelihood": 0.0,
+      "previously_failed": 0.0,
+      "unknown_action_type": 1.0,
+      "candidate_map_package_mismatch": 1.0,
+      "tap_visual_fallback_disabled": 0.0,
+      "payment_risk": 1.0,
+      "delete_risk": 1.0,
+      "logout_risk": 1.0,
+      "sensitive_hint": 1.0,
+      "action_semantics_sensitive": 1.0,
+      "sensitive_category": 1.0,
+      "reveal_control_bar_success": 0.0,
+      "reveal_probation": 0.0,
+      "reveal_stale": 0.0,
+      "reveal_generic_fallback": 0.0,
+      "selected_role_transition": 1.0,
+      "reobservation_success": 1.0,
+      "candidate_switch_success": 1.0,
+      "localization_success": 1.0,
+      "reobservation_failed": 0.0,
+      "verifier_unknown_recovery": 1.0,
+      "decision_calls_exhaustion": 0.0,
+      "atomic_action_count_exhaustion": 0.0,
+      "recovery_count_exhaustion": 0.0,
+      "timeout_deadline_exhaustion": 0.0,
+      "multiple_budgets_exhaustion": 0.0
+    }
+  },
+  "safety": {
+    "guard_rejection_count": 10,
+    "zero_executor_calls_count": 10,
+    "zero_executor_coverage": 1.0
+  },
+  "recovery": {
+    "recoverable_scenario_count": 4,
+    "recovery_success_count": 4,
+    "recovery_success_rate": 1.0,
+    "average_recovery_count": 0.0,
+    "max_recovery_count": 0
+  },
+  "reveal": {
+    "reveal_scenario_count": 4,
+    "reveal_success_count": 0,
+    "reveal_success_rate": 0.0
+  },
+  "budget": {
+    "budget_exhaustion_count": 0,
+    "budget_type_distribution": {}
+  },
+  "latency": {
+    "p50_latency_ms": 0.01,
+    "p95_latency_ms": 0.03,
+    "max_latency_ms": 0.07,
+    "avg_latency_ms": 0.01
+  }
+}

@@ -1,0 +1,33 @@
+Metric,Value
+total_scenarios,34
+outcome_matches,20
+outcome_match_rate,0.588
+executor_calls_matches,20
+executor_calls_match_rate,0.588
+
+Safety Metrics,
+guard_rejection_count,10
+zero_executor_calls_count,10
+zero_executor_coverage,1.0
+
+Recovery Metrics,
+recoverable_scenario_count,4
+recovery_success_count,4
+recovery_success_rate,1.0
+average_recovery_count,0.0
+max_recovery_count,0
+
+Reveal Metrics,
+reveal_scenario_count,4
+reveal_success_count,0
+reveal_success_rate,0.0
+
+Budget Metrics,
+budget_exhaustion_count,0
+budget_type_distribution,{}
+
+Latency Metrics,
+p50_latency_ms,0.01
+p95_latency_ms,0.03
+max_latency_ms,0.07
+avg_latency_ms,0.01
