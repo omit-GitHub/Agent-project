@@ -187,6 +187,9 @@ class OCRResult:
     tokens: set = field(default_factory=set)
     candidates: list = field(default_factory=list)  # list[Candidate]，source='ocr'
     detail: str = ""
+    latency_ms: Optional[float] = None   # 真实 wall-clock 单图 OCR 耗时
+    meta: list = field(default_factory=list)  # 每候选 {text, score, type, zone, rect}
+    status: str = "unavailable"  # ok / empty / init_failed / error / unavailable
 
 
 @runtime_checkable
@@ -201,7 +204,153 @@ class UnavailableOCRBackend:
         self.reason = reason
 
     def extract(self, path: str, rgb) -> OCRResult:
-        return OCRResult(available=False, detail=self.reason)
+        return OCRResult(available=False, detail=self.reason, status="unavailable")
+
+
+# ─────────────── RapidOCR 后端（本地 OCR，可选依赖） ───────────────
+
+def _classify_ocr_element(rect: dict, text: str) -> str:
+    """复用 harness-guivlm-main/ocr/ocr_pipeline.py 的启发式元素分类。
+
+    注意：这是概念验证的启发式分类（后续以检测器替换），阈值针对 1280×800。
+    """
+    w, h = rect["w"], rect["h"]
+    x, y = rect["x"], rect["y"]
+
+    # 时间/日期（右上角）
+    if x > 1000 and y < 80 and text and any(c.isdigit() for c in text):
+        return "status_time"
+    # 状态栏图标区
+    if y < 80 and x > 600:
+        return "status_bar"
+    # 底部导航栏
+    if y > 680:
+        if w < 100 and h < 50:
+            return "nav_icon_label"
+        return "nav_area"
+    # 按钮（中等大小矩形，短文本）
+    if 30 < w < 200 and 20 < h < 60 and len(text) <= 6:
+        return "button"
+    # 标题（较大字体）
+    if h > 40 or w > 300:
+        return "title"
+    return "text"
+
+
+class RapidOCROCRBackend:
+    """本地 RapidOCR 后端（rapidocr_onnxruntime，可选依赖）。
+
+    - 惰性 import + 惰性初始化：未安装时 extract 返回 available=False（降级），
+      不破坏核心 import / 单元测试。
+    - 每个 OCR candidate：text、bbox（已裁剪到截图范围）、confidence=score、
+      source="ocr"、kind=""（OCR-only 未 refinement）。
+    - 启发式分类 type 与 zone 保存在 meta 中，不伪造文字。
+    - 真实 wall-clock 记录单图 OCR 耗时。
+    """
+
+    def __init__(self, min_score: float = 0.3):
+        self.min_score = min_score
+        self._engine = None
+        self.init_error = None
+        self.version = None
+
+    def _ensure_engine(self) -> bool:
+        if self._engine is not None:
+            return True
+        if self.init_error is not None:
+            return False
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+            self._engine = RapidOCR()
+            try:
+                import importlib.metadata as _im
+                self.version = _im.version("rapidocr_onnxruntime")
+            except Exception:  # noqa: BLE001
+                self.version = "unknown"
+            return True
+        except Exception as e:  # noqa: BLE001 — 记录初始化失败，不抛出
+            self.init_error = str(e)
+            return False
+
+    def warmup(self) -> bool:
+        """预初始化模型，使后续 extract 的 latency 仅含单图 OCR 时间（不含模型加载）。"""
+        return self._ensure_engine()
+
+    def extract(self, path: str, rgb) -> OCRResult:
+        import time
+
+        if not self._ensure_engine():
+            return OCRResult(available=False, status="init_failed",
+                             detail=f"rapidocr init failed: {self.init_error}")
+
+        t0 = time.time()
+        try:
+            result, _ = self._engine(path)
+        except Exception as e:  # noqa: BLE001 — 单图异常单独记录
+            return OCRResult(available=False, status="error",
+                             detail=f"ocr error: {e}",
+                             latency_ms=(time.time() - t0) * 1000.0)
+
+        latency_ms = (time.time() - t0) * 1000.0
+        h, w = rgb.shape[:2]
+
+        tokens = set()
+        candidates = []
+        meta = []
+        for item in (result or []):
+            try:
+                box, text, score_str = item[0], item[1], item[2]
+                text = (text or "").strip()
+                score = float(score_str)
+            except Exception:  # noqa: BLE001 — 跳过无法解析的结果
+                continue
+            if not text or score < self.min_score:
+                continue
+
+            xs = [p[0] for p in box]
+            ys = [p[1] for p in box]
+            x1 = int(round(max(0, min(xs))))
+            y1 = int(round(max(0, min(ys))))
+            x2 = int(round(min(w, max(xs))))
+            y2 = int(round(min(h, max(ys))))
+            if x2 <= x1 or y2 <= y1:  # 裁剪后非法 bbox
+                continue
+
+            rect = {"x": x1, "y": y1, "w": x2 - x1, "h": y2 - y1,
+                    "cx": (x1 + x2) // 2, "cy": (y1 + y2) // 2}
+            elem_type = _classify_ocr_element(rect, text)
+            zone = "status_bar" if y1 < 80 else ("nav_bar" if y1 > 680 else "main_content")
+
+            tokens.add(text)
+            candidates.append(Candidate(
+                candidate_id=f"ocr_{len(candidates)}",
+                bbox_px=BBox(x1=x1, y1=y1, x2=x2, y2=y2),
+                text=text,
+                confidence=round(score, 3),
+                clickable_likelihood=0.5,  # OCR 不检测可点击性，中性占位
+                source="ocr",
+                kind="",  # OCR-only，未 refinement
+            ))
+            meta.append({"text": text, "score": round(score, 3), "type": elem_type,
+                         "zone": zone, "rect": rect})
+
+        status = "ok" if candidates else "empty"
+        return OCRResult(
+            available=True, tokens=tokens, candidates=candidates,
+            latency_ms=round(latency_ms, 2), meta=meta, status=status,
+            detail=f"rapidocr {self.version}: {len(candidates)} candidates",
+        )
+
+
+def _default_ocr_backend() -> OCRBackend:
+    """默认 OCR 后端：优先 RapidOCR，未安装时降级 unavailable。"""
+    backend = RapidOCROCRBackend()
+    # 仅 import 检查（不初始化模型）；真正初始化在首次 extract 时懒加载
+    try:
+        import rapidocr_onnxruntime  # noqa: F401
+        return backend
+    except ImportError:
+        return UnavailableOCRBackend(reason="rapidocr_onnxruntime not installed")
 
 
 # ─────────────── 候选提供器接口 ───────────────
@@ -387,6 +536,9 @@ class ObservationResult:
     ui_state: Optional[UiState]
     red_boxes: list = field(default_factory=list)
     error: Optional[str] = None
+    ocr_status: str = "unavailable"
+    ocr_latency_ms: Optional[float] = None
+    ocr_meta: list = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -411,7 +563,7 @@ class ScreenshotObservationAdapter:
                  red_box_extractor: Optional[RedBoxExtractor] = None,
                  package: str = "unknown", activity: str = "unknown",
                  control_bar_visible: bool = False):
-        self.ocr_backend = ocr_backend or UnavailableOCRBackend()
+        self.ocr_backend = ocr_backend or _default_ocr_backend()
         self.candidate_provider = candidate_provider or NumpyVisualCandidateProvider()
         self.red_box_extractor = red_box_extractor or RedBoxExtractor()
         self.package = package
@@ -482,4 +634,6 @@ class ScreenshotObservationAdapter:
             ocr_tokens=ocr_tokens, ocr_available=ocr_result.available,
             visual_available=visual_available, candidates=candidates,
             candidate_map=cm, ui_state=state, red_boxes=red_boxes,
+            ocr_status=ocr_result.status, ocr_latency_ms=ocr_result.latency_ms,
+            ocr_meta=ocr_result.meta,
         )

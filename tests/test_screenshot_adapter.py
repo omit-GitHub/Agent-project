@@ -18,7 +18,7 @@ if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
 from harness.screenshot_adapter import (  # noqa: E402
-    ScreenshotObservationAdapter, UnavailableOCRBackend,
+    ScreenshotObservationAdapter, UnavailableOCRBackend, RapidOCROCRBackend,
     NumpyVisualCandidateProvider, RedBoxExtractor,
     decode_png, image_fingerprint, PngDecodeError,
 )
@@ -103,8 +103,6 @@ class TestAdapter(unittest.TestCase):
             obs = adapter.observe(p, package="com.t", activity="Main")
             self.assertTrue(obs.ok)
             self.assertEqual(obs.screen_size, (64, 64))
-            self.assertFalse(obs.ocr_available)  # 无 OCR 后端 → unavailable
-            self.assertEqual(obs.ocr_tokens, set())
             self.assertTrue(obs.visual_available)
             self.assertGreater(len(obs.candidates), 0)
             # CandidateMap 与 UiState 一致
@@ -112,6 +110,19 @@ class TestAdapter(unittest.TestCase):
             self.assertEqual(obs.ui_state.candidate_map.width, 64)
             self.assertEqual(obs.ui_state.candidate_map.height, 64)
             self.assertEqual(obs.ui_state.candidate_map.package, "com.t")
+
+    @unittest.skipUnless(HAS_NUMPY, "numpy not available")
+    def test_observe_unavailable_ocr_degradation(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = os.path.join(td, "t.png")
+            _encode_rgba_png(_synthetic_rect_image(), p)
+            adapter = ScreenshotObservationAdapter(ocr_backend=UnavailableOCRBackend())
+            obs = adapter.observe(p)
+            self.assertTrue(obs.ok)
+            self.assertFalse(obs.ocr_available)
+            self.assertEqual(obs.ocr_tokens, set())
+            self.assertEqual(obs.ocr_status, "unavailable")
+            self.assertGreater(len(obs.candidates), 0)  # visual 候选仍可用
 
     @unittest.skipUnless(HAS_NUMPY, "numpy not available")
     def test_visual_candidates_valid_bbox(self):
@@ -133,6 +144,27 @@ class TestAdapter(unittest.TestCase):
         self.assertFalse(res.available)
         self.assertEqual(res.tokens, set())
         self.assertEqual(res.candidates, [])
+
+    def test_rapidocr_backend(self):
+        try:
+            import rapidocr_onnxruntime  # noqa: F401
+        except ImportError:
+            self.skipTest("rapidocr_onnxruntime not installed")
+        files = sorted(f for f in os.listdir(SCREENSHOT_DIR) if f.endswith(".png"))
+        if not files:
+            self.skipTest("no screenshots available")
+        p = os.path.join(SCREENSHOT_DIR, files[0])
+        rgb = decode_png(p)
+        backend = RapidOCROCRBackend()
+        backend.warmup()
+        res = backend.extract(p, rgb)
+        self.assertTrue(res.available)
+        self.assertEqual(res.status, "ok" if res.candidates else "empty")
+        for c in res.candidates:
+            self.assertEqual(c.source, "ocr")
+            self.assertEqual(c.kind, "")  # OCR-only 未 refinement
+            self.assertIsNotNone(c.text)
+            self.assertTrue(c.bbox_px.fits_in(1280, 800))
 
     @unittest.skipUnless(HAS_NUMPY, "numpy not available")
     def test_decode_failure_degradation(self):
