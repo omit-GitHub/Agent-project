@@ -160,7 +160,7 @@ def verify_safety_assertions(test_results):
 
     # 1. 所有 guard rejection 测试的 executor_calls == 0
     guard_test = [t for t in test_results
-                  if t["test_name"] == "test_all_rejections_have_zero_executor_calls"]
+                  if t["test_name"] == "test_60_all_rejections_zero_calls"]
     assertions["guard_rejection_executor_calls_zero"] = (
         len(guard_test) > 0 and guard_test[0]["status"] == "ok"
     )
@@ -181,7 +181,7 @@ def verify_safety_assertions(test_results):
 
     # 4. reveal 不接受 raw dict
     no_raw_dict_test = [t for t in test_results
-                        if t["test_name"] == "test_24_reveal_not_raw_dict"]
+                        if t["test_name"] == "test_26_no_reveal_method"]
     assertions["revealer_rejects_raw_dict"] = (
         len(no_raw_dict_test) > 0 and no_raw_dict_test[0]["status"] == "ok"
     )

@@ -107,14 +107,14 @@ class LocalVerifier:
                 observed_state=observed,
             )
 
-        # 4. target_role 命中 selected_role
+        # 4. target_role 命中 selected_role — 要求状态转移 (before ≠ target)
         if (action.target_role
-                and after.selected_role is not None
+                and before.selected_role != action.target_role
                 and after.selected_role == action.target_role):
             return VerificationResult(
                 verification=VerificationStatus.success,
                 source=VerificationSource.local,
-                reason=f"selected_role matches target: {action.target_role}",
+                reason=f"selected_role transition to target: {action.target_role}",
                 observed_state=observed,
             )
 

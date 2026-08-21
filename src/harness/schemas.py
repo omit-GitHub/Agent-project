@@ -15,6 +15,51 @@ from typing import Any, Optional
 from .types import BBox, CandidateMap
 
 
+# ─────────────── RevealPolicyConfig ───────────────
+
+@dataclass
+class RevealPolicyConfig:
+    """唤出策略全局配置。所有阈值集中管理，不散落硬编码。
+
+    policy_version: 配置版本标识（如 'reveal-v1'）。
+    """
+    policy_version: str = "reveal-v1"
+
+    # 状态机阈值
+    probation_threshold: int = 2         # consecutive_failures >= 此值 → probation
+    stale_consecutive_threshold: int = 3  # consecutive_failures >= 此值 → stale
+    stale_window_size: int = 5            # rolling window 大小
+    stale_window_failure_threshold: int = 4  # window 内 >= 此值 failure → stale
+
+    # 恢复
+    recovery_success_threshold: int = 2   # probation → active 需连续 success 次数
+    max_recovery_steps: int = 5           # 单次恢复最大步数
+    max_recovery_attempts: int = 2        # 最大恢复尝试次数
+
+    # 默认唤出序列
+    default_reveal_actions: list = None
+
+    def __post_init__(self):
+        if self.default_reveal_actions is None:
+            self.default_reveal_actions = [
+                {"type": "tap", "x": 0.50, "y": 0.50, "wait_ms": 700},
+                {"type": "remote_key", "key": "DPAD_CENTER", "wait_ms": 700},
+                {"type": "remote_key", "key": "MENU", "wait_ms": 900},
+            ]
+
+
+# ─────────────── RevealPlan ───────────────
+
+@dataclass
+class RevealPlan:
+    """唤出计划。ControlRevealer 的输出产物。
+
+    action_loop 逐条执行 plan.actions，每条走完整 guard→execute→verify 路径。
+    """
+    strategy_id: str
+    actions: list = field(default_factory=list)  # list[ActionSpec]
+
+
 # ─────────────── 动作规格 ───────────────
 
 @dataclass
@@ -103,16 +148,22 @@ class ActionLoopResult:
 
     status 取值：
       - success：Verifier 返回 success（唯一 ok=True 出口）
-      - blocked：Guard 拒绝
+      - blocked：Guard 拒绝（通用）
       - failed：执行或验证失败
       - timeout：max_steps 耗尽
-      - needs_user_confirmation：action_type == "ask_user"
+      - needs_user_confirmation：action_type == "ask_user" 或 Guard risk_level=medium
       - stopped_unverified：action_type == "done" 但此前未获得 Verifier success
-      - guard_ask_user：Guard 判定敏感操作需用户确认
-      - guard_reject：Guard 直接拒绝（高危操作）
+      - guard_reject：Guard risk_level=high，直接拒绝
+      - needs_refinement：Guard requires_refinement，进入受限恢复
       - unknown_exhausted：unknown 重观察次数耗尽
       - decision_budget_exhausted：决策调用预算耗尽
-      - reveal_failed：ControlRevealer 唤出失败
+      - action_budget_exhausted：原子动作预算耗尽
+      - reveal_failed：RevealPlan 执行失败
+
+    三类预算：
+      - decision_calls：仅 DecisionSource.next_action() 次数
+      - atomic_action_count：所有 executor.execute() 次数
+      - recovery_count：进入 RecoveryPlan 次数
     """
     ok: bool
     status: str
@@ -122,4 +173,4 @@ class ActionLoopResult:
     trace: list = field(default_factory=list)
     recovery_count: int = 0
     decision_calls: int = 0
-    action_count: int = 0
+    atomic_action_count: int = 0

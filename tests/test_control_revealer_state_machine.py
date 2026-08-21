@@ -17,7 +17,7 @@ _SRC_ROOT = os.path.join(_PROJECT_ROOT, "src")
 if _SRC_ROOT not in sys.path:
     sys.path.insert(0, _SRC_ROOT)
 
-from harness.schemas import ActionSpec, UiState, ActionResult
+from harness.schemas import ActionSpec, UiState, ActionResult, RevealPlan
 from harness.types import BBox, Candidate, CandidateMap
 from harness.verifier import VerificationResult, VerificationStatus
 from harness.control_revealer import (
@@ -402,129 +402,126 @@ class TestStaleGenericFallback(unittest.TestCase):
         best = manager.select_best(app="com.unknown")
         self.assertIsNone(best)
 
-    def test_20_generic_fallback_used_in_reveal(self):
-        """reveal 中使用 generic fallback。"""
+    def test_20_generic_fallback_used_in_plan(self):
+        """plan() 中使用 generic fallback。"""
         manager = RevealStrategyManager(storage_path=self.storage_path)
         revealer = ControlRevealer(strategy_manager=manager)
 
-        # 构造 executor 和 verifier
-        after_state = make_state(
-            fingerprint="fp_after",
-            control_bar_visible=True,
-            ocr_tokens={"play", "pause"},
-        )
-        executor = RevealerFakeExecutor(after_state=after_state)
-        verifier = RevealerFakeVerifier()
         current_state = make_state(control_bar_visible=False)
 
-        success, candidate_map, strategy_id = revealer.reveal(
-            app="com.unknown",
-            executor=executor,
-            verifier=verifier,
-            current_state=current_state,
-        )
+        plan = revealer.plan(app="com.unknown", current_state=current_state)
         # 使用 generic 策略
-        self.assertEqual(strategy_id, "generic")
-        self.assertTrue(success)
+        self.assertEqual(plan.strategy_id, "generic")
+        self.assertIsInstance(plan, RevealPlan)
+        self.assertGreater(len(plan.actions), 0)
+        # 所有 actions 都是 ActionSpec
+        for action in plan.actions:
+            self.assertIsInstance(action, ActionSpec)
 
 
-# ═══════════════ Reveal 成功条件测试 ═══════════════
+# ═══════════════ Plan 输出测试 ═══════════════
 
-class TestRevealSuccessConditions(unittest.TestCase):
-    """验证 reveal 成功条件。"""
+class TestRevealPlanOutput(unittest.TestCase):
+    """验证 ControlRevealer.plan() 输出。"""
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.storage_path = os.path.join(self.temp_dir, "strategies.json")
 
-    def test_21_reveal_success_on_control_bar_visible(self):
-        """control_bar_visible: false → true → reveal 成功。"""
+    def test_21_plan_returns_actionspec_list(self):
+        """plan() 返回 RevealPlan(strategy_id, list[ActionSpec])。"""
         manager = RevealStrategyManager(storage_path=self.storage_path)
         revealer = ControlRevealer(strategy_manager=manager)
 
-        after_state = make_state(
-            fingerprint="fp_after",
-            control_bar_visible=True,
-        )
-        executor = RevealerFakeExecutor(after_state=after_state)
-        verifier = RevealerFakeVerifier()
         current_state = make_state(control_bar_visible=False)
 
-        success, cm, sid = revealer.reveal(
-            app="com.test",
-            executor=executor,
-            verifier=verifier,
-            current_state=current_state,
-        )
-        self.assertTrue(success)
+        plan = revealer.plan(app="com.test", current_state=current_state)
+        self.assertEqual(plan.strategy_id, "generic")
+        self.assertIsInstance(plan.actions, list)
+        for action in plan.actions:
+            self.assertIsInstance(action, ActionSpec)
+            # 每个 action 都必须是合法 action_type
+            self.assertIn(action.action_type,
+                          {"tap_visual", "remote_key", "media_key", "swipe", "back"})
 
-    def test_22_reveal_success_on_target_role(self):
-        """target_role 出现 → reveal 成功。"""
+    def test_22_plan_with_registered_strategy(self):
+        """有注册策略时使用该策略。"""
+        manager = RevealStrategyManager(storage_path=self.storage_path)
+        r1 = RevealStrategyRecord(
+            strategy_id="tap_center",
+            app="com.test",
+            actions=[{"type": "tap", "x": 0.5, "y": 0.5, "wait_ms": 100}],
+        )
+        manager.register(r1)
+        revealer = ControlRevealer(strategy_manager=manager)
+
+        current_state = make_state(control_bar_visible=False)
+
+        plan = revealer.plan(app="com.test", current_state=current_state)
+        self.assertEqual(plan.strategy_id, "tap_center")
+        self.assertEqual(len(plan.actions), 1)
+        self.assertEqual(plan.actions[0].action_type, "tap_visual")
+
+    def test_23_plan_uses_policy_max_steps(self):
+        """plan() 受 RevealPolicyConfig.max_recovery_steps 限制。"""
+        from harness.schemas import RevealPolicyConfig
+        policy = RevealPolicyConfig(max_recovery_steps=2)
+        manager = RevealStrategyManager(storage_path=self.storage_path, policy=policy)
+        r1 = RevealStrategyRecord(
+            strategy_id="long_seq",
+            app="com.test",
+            actions=[
+                {"type": "remote_key", "key": "MENU", "wait_ms": 100},
+                {"type": "remote_key", "key": "BACK", "wait_ms": 100},
+                {"type": "remote_key", "key": "ENTER", "wait_ms": 100},
+                {"type": "remote_key", "key": "DPAD_CENTER", "wait_ms": 100},
+            ],
+            policy=policy,
+        )
+        manager.register(r1)
+        revealer = ControlRevealer(strategy_manager=manager, policy=policy)
+
+        current_state = make_state(control_bar_visible=False)
+
+        plan = revealer.plan(app="com.test", current_state=current_state)
+        # 受 policy.max_recovery_steps=2 限制
+        self.assertLessEqual(len(plan.actions), 2)
+
+    def test_24_record_success_updates_strategy(self):
+        """record_success 更新策略状态。"""
+        manager = RevealStrategyManager(storage_path=self.storage_path)
+        r1 = RevealStrategyRecord(strategy_id="s1", app="com.test")
+        manager.register(r1)
+        revealer = ControlRevealer(strategy_manager=manager)
+
+        revealer.record_success("s1", 100.0)
+        updated = manager.get_strategy("s1")
+        self.assertEqual(updated.success_count, 1)
+        self.assertEqual(updated.consecutive_failures, 0)
+
+    def test_25_record_semantic_failure_updates_strategy(self):
+        """record_semantic_failure 更新策略状态。"""
+        manager = RevealStrategyManager(storage_path=self.storage_path)
+        r1 = RevealStrategyRecord(strategy_id="s1", app="com.test")
+        manager.register(r1)
+        revealer = ControlRevealer(strategy_manager=manager)
+
+        revealer.record_semantic_failure("s1")
+        updated = manager.get_strategy("s1")
+        self.assertEqual(updated.failure_count, 1)
+        self.assertEqual(updated.consecutive_failures, 1)
+
+    def test_26_no_reveal_method(self):
+        """ControlRevealer 不再有 reveal() 方法。"""
         manager = RevealStrategyManager(storage_path=self.storage_path)
         revealer = ControlRevealer(strategy_manager=manager)
 
-        after_state = make_state(
-            fingerprint="fp_after",
-            control_bar_visible=False,
-            selected_role="play_button",
-        )
-        executor = RevealerFakeExecutor(after_state=after_state)
-        verifier = RevealerFakeVerifier()
-        current_state = make_state(control_bar_visible=False, selected_role=None)
-
-        success, cm, sid = revealer.reveal(
-            app="com.test",
-            executor=executor,
-            verifier=verifier,
-            current_state=current_state,
-            target_role="play_button",
-        )
-        self.assertTrue(success)
-
-    def test_23_reveal_success_on_ocr_token(self):
-        """expected OCR token 出现 → reveal 成功。"""
-        manager = RevealStrategyManager(storage_path=self.storage_path)
-        revealer = ControlRevealer(strategy_manager=manager)
-
-        after_state = make_state(
-            fingerprint="fp_after",
-            control_bar_visible=False,
-            ocr_tokens={"title", "play", "pause"},
-        )
-        executor = RevealerFakeExecutor(after_state=after_state)
-        verifier = RevealerFakeVerifier()
-        current_state = make_state(
-            control_bar_visible=False,
-            ocr_tokens={"title"},
-        )
-
-        success, cm, sid = revealer.reveal(
-            app="com.test",
-            executor=executor,
-            verifier=verifier,
-            current_state=current_state,
-            expected_ocr_tokens={"play"},
-        )
-        self.assertTrue(success)
-
-    def test_24_reveal_not_raw_dict(self):
-        """reveal 不接受 raw action_executor callable — 签名已变更。"""
-        manager = RevealStrategyManager(storage_path=self.storage_path)
-        revealer = ControlRevealer(strategy_manager=manager)
-
-        # 旧 API 使用 set_action_executor
+        self.assertFalse(hasattr(revealer, 'reveal'))
         self.assertFalse(hasattr(revealer, 'set_action_executor'))
-
-        # 旧 API reveal(app, screenshot_provider, candidate_builder) 已移除
-        # 新 API 必须传 executor, verifier, current_state
-        import inspect
-        sig = inspect.signature(revealer.reveal)
-        params = list(sig.parameters.keys())
-        self.assertIn("executor", params)
-        self.assertIn("verifier", params)
-        self.assertIn("current_state", params)
-        self.assertNotIn("screenshot_provider", params)
-        self.assertNotIn("candidate_builder", params)
+        self.assertTrue(hasattr(revealer, 'plan'))
+        self.assertTrue(hasattr(revealer, 'record_success'))
+        self.assertTrue(hasattr(revealer, 'record_semantic_failure'))
+        self.assertTrue(hasattr(revealer, 'record_infrastructure_failure'))
 
 
 if __name__ == "__main__":

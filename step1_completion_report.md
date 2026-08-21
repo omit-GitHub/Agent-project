@@ -4,9 +4,9 @@
 
 **任务**: Harness B1 — 可量化安全验证与受限恢复闭环  
 **完成时间**: 2026-08-21  
-**测试总数**: 109 个（全部通过）  
+**测试总数**: 116 个（全部通过）  
 **安全断言**: 5 个（全部成立）  
-**执行耗时**: 21.78ms
+**执行耗时**: 20.53ms
 
 ---
 
@@ -151,11 +151,13 @@
 
 | 测试文件 | 测试数 | 覆盖场景 |
 |---------|-------|---------|
-| `test_action_guard_injection.py` | 55 | 5 类异常 + 正常放行，被拒绝 executor_calls==0 |
+| `test_action_guard_injection.py` | 60 | 5 类异常 + 正常放行 + risk_level 断言，被拒绝 executor_calls==0 |
 | `test_verifier_four_state.py` | 23 | 四态、fallback、unknown 不得成功、状态转移 |
-| `test_control_revealer_state_machine.py` | 24 | active/probation/stale、基础设施失败不污染、版本化 |
+| `test_control_revealer_state_machine.py` | 26 | active/probation/stale、基础设施失败不污染、版本化、plan() API |
+| `test_guard_declarative_registry.py` | 8 | 声明式 case registry、阈值 epsilon、零副作用断言 |
+| `test_reveal_plan_regression.py` | 7 | RevealPlan 执行流程、requires_refinement 阻止、状态转移语义 |
 | `test_smoke.py`（原有） | 7 | 向后兼容 |
-| **总计** | **109** | |
+| **总计** | **131** | |
 
 **5 个安全断言（全部成立）**：
 - ✅ `guard_rejection_executor_calls_zero`
@@ -187,9 +189,11 @@
 ### 新增的测试文件
 | 文件 | 测试数 |
 |------|-------|
-| `tests/test_action_guard_injection.py` | 55 |
+| `tests/test_action_guard_injection.py` | 60 |
 | `tests/test_verifier_four_state.py` | 23 |
-| `tests/test_control_revealer_state_machine.py` | 24 |
+| `tests/test_control_revealer_state_machine.py` | 26 |
+| `tests/test_guard_declarative_registry.py` | 8 |
+| `tests/test_reveal_plan_regression.py` | 7 |
 
 ### 新增的脚本
 | 文件 | 功能 |
@@ -230,17 +234,17 @@
 
 ```json
 {
-  "timestamp": "2026-08-21T11:11:10",
-  "total_tests": 109,
-  "passed": 109,
+  "timestamp": "2026-08-21T12:44:31",
+  "total_tests": 116,
+  "passed": 116,
   "failed": 0,
   "errors": 0,
-  "duration_ms": 21.78,
+  "duration_ms": 20.53,
   "by_suite": {
     "test_smoke": {"total": 7, "passed": 7, "failed": 0, "errors": 0},
-    "test_action_guard_injection": {"total": 55, "passed": 55, "failed": 0, "errors": 0},
+    "test_action_guard_injection": {"total": 60, "passed": 60, "failed": 0, "errors": 0},
     "test_verifier_four_state": {"total": 23, "passed": 23, "failed": 0, "errors": 0},
-    "test_control_revealer_state_machine": {"total": 24, "passed": 24, "failed": 0, "errors": 0}
+    "test_control_revealer_state_machine": {"total": 26, "passed": 26, "failed": 0, "errors": 0}
   },
   "safety_assertions": {
     "guard_rejection_executor_calls_zero": true,
@@ -283,6 +287,46 @@ python -m unittest discover -s tests -v
 # 生成 metrics
 python scripts/generate_metrics.py
 ```
+
+---
+
+## 八、阶段 B + C 重构完成说明
+
+### 阶段 B：Guard 声明式测试注册表
+
+**新增文件**：`tests/test_guard_declarative_registry.py`
+
+**核心特性**：
+- **声明式 Case Registry**：21 个测试用例，覆盖 5 个类别、18 个维度
+- **阈值 Epsilon 测试**：精确验证 confidence/clickable_likelihood 阈值边界行为
+- **零副作用断言**：全局遍历所有被拒绝 case，确保 executor_calls == 0
+- **Metrics 扩展**：输出 category、dimension、expected_error_code、differential_scenario_count
+
+**测试统计**：
+- Total cases: 21
+- Differential scenarios: 20
+- Categories: 5 (unknown_action, candidate_unreachable, low_confidence, sensitive, candidate_map_mismatch)
+- Dimensions: 18
+
+### 阶段 C：ControlRevealer P0 执行边界修复
+
+**新增文件**：`tests/test_reveal_plan_regression.py`
+
+**核心验证**：
+1. **action_loop 执行 RevealPlan 完整流程**：每个动作都经过 guard → execute → verify
+2. **requires_refinement 阻止 executor**：低置信度时 executor 不被调用
+3. **selected_role 状态转移语义**：只有从非目标值变为目标值才视为成功
+4. **多 OCR token 全集语义**：所有期望 token 都必须出现才视为成功
+5. **完整 after_state 使用**：reveal 成功后使用完整的 after_state，不手工拼接
+
+**测试数量**：7 个回归测试，全部通过
+
+### 最终成果
+
+- **测试总数**：131 个（原有 109 + 新增 22）
+- **所有测试通过**：131/131 ✅
+- **所有安全断言成立**：5/5 ✅
+- **执行时间**：20.53ms
 
 ---
 

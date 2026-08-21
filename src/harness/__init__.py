@@ -2,16 +2,20 @@
 """Harness Framework — VLM 决策与真实设备执行之间的确定性安全边界。
 
 主要能力：
-  - Action Guard：动作合法性多重校验
+  - Action Guard：纯校验层（risk_level / requires_refinement）
   - Layered Verifier：本地信号优先 + 严格四态输出
-  - Control Revealer：隐藏控件唤出，带三态状态机
-  - run_action_loop：Protocol 驱动的最小闭环
-  - ActionSpec / UiState / ActionResult / ActionLoopResult：最小数据模型
+  - Control Revealer：策略规划器（输出 RevealPlan）
+  - RecoveryPlanner：恢复规划器
+  - run_action_loop：三类预算受限闭环
+  - RevealPolicyConfig：集中化阈值管理
 
 本包无任何外部依赖（除 pydantic）。
 """
 from .types import BBox, Candidate, CandidateMap
-from .schemas import ActionSpec, UiState, ActionResult, ActionLoopResult
+from .schemas import (
+    ActionSpec, UiState, ActionResult, ActionLoopResult,
+    RevealPolicyConfig, RevealPlan,
+)
 from .action_guard import (
     ActionGuard,
     ActionGuardConfig,
@@ -32,7 +36,6 @@ from .control_revealer import (
     ControlRevealer,
     RevealStrategyManager,
     RevealStrategyRecord,
-    DEFAULT_REVEAL_SEQUENCE,
 )
 from .timing import PhaseTimings, TimingStats, TimingTracker
 from .action_loop import (
@@ -40,9 +43,11 @@ from .action_loop import (
     DecisionSource,
     ActionExecutor,
     StateVerifier,
+    RecoveryPlanner,
+    DefaultRecoveryPlanner,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     # types
@@ -54,6 +59,8 @@ __all__ = [
     "UiState",
     "ActionResult",
     "ActionLoopResult",
+    "RevealPolicyConfig",
+    "RevealPlan",
     # action_guard
     "ActionGuard",
     "ActionGuardConfig",
@@ -72,7 +79,6 @@ __all__ = [
     "ControlRevealer",
     "RevealStrategyManager",
     "RevealStrategyRecord",
-    "DEFAULT_REVEAL_SEQUENCE",
     # timing
     "TimingTracker",
     "PhaseTimings",
@@ -82,4 +88,6 @@ __all__ = [
     "DecisionSource",
     "ActionExecutor",
     "StateVerifier",
+    "RecoveryPlanner",
+    "DefaultRecoveryPlanner",
 ]
