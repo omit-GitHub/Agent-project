@@ -93,13 +93,14 @@ class MockDecisionSource:
 
 @dataclass
 class MockExecutor:
-    """按显式结果序列执行；耗尽后默认 ok + identity after_state。
+    """按显式结果序列执行；results 耗尽即抛错，禁止默认 ok 掩盖漏配。
 
     results: list[dict]，每项为 exec_result(ok, after_state, error_code)。
     """
     results: list = field(default_factory=list)
     timing_config: object = None
     clock: Optional[Clock] = None
+    scenario_id: Optional[str] = None
     call_count: int = field(default=0, init=False, repr=False)
     calls: list = field(default_factory=list, init=False, repr=False)
 
@@ -122,8 +123,12 @@ class MockExecutor:
                 detail="mock_executed",
             )
 
-        # 默认：ok，identity after_state
-        return ActionResult(ok=True, action=action, after_state=state, detail="mock_executed")
+        target = action.candidate_id or action.target_role or action.action_type
+        raise AssertionError(
+            f"MockExecutor executor_results exhausted: scenario={self.scenario_id!r} "
+            f"call_index={idx} action={action.action_type} target={target!r}. "
+            f"场景必须显式提供每次 executor 的结果，禁止默认成功。"
+        )
 
     def reset(self):
         self.call_count = 0

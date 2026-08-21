@@ -34,6 +34,6 @@ budget_type_distribution,"{'decision_calls': 1, 'atomic_action_count': 2, 'recov
 observe,count=50 p50=0.0 p95=0.0
 decision,count=50 p50=0.0 p95=0.0
 execute,count=34 p50=0.0 p95=0.0
-verify,count=27 p50=0.0 p95=0.0
+verify,count=34 p50=0.0 p95=0.0
 recovery,count=9 p50=0.0 p95=0.0
 end_to_end,count=34 p50=0.0 p95=0.0

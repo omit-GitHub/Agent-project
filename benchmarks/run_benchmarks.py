@@ -95,6 +95,7 @@ def run_single_scenario(scenario: BenchmarkScenario, tmpdir: str) -> dict:
         results=scenario.executor_results or [],
         timing_config=scenario.timing_config,
         clock=clock,
+        scenario_id=scenario.scenario_id,
     )
     verifier = MockVerifier(
         results=scenario.verifier_results or [],

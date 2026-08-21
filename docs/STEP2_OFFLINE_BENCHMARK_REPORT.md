@@ -146,6 +146,13 @@
    `ControlRevealer`（注册 reveal 策略）与 `RecoveryPlanner`，逐条断言。
 6. **汇总口径**：baseline 分母修正为 `must_reject + must_refine`；`summarize_benchmarks.py`
    在未达 100% 时非零退出并标记 FAILED；recovery / reveal 采用真实分母。
+7. **MockExecutor 漏配即失败**：`executor_results` 耗尽后不再默认 `ok=True`，改为抛出含
+   scenario / action / call index 的 `AssertionError`，任一场景漏配 executor 行为都会使
+   benchmark 失败，不被默认成功掩盖。
+8. **Reveal 统一验证路径**：移除 `use_reveal_verify` / `_verify_reveal_success` 绕过逻辑，
+   reveal 的每个原子动作均走 `Guard → Executor → Verifier`（调用注入的 `verifier.verify`），
+   控制条 / 目标状态规则由统一 Verifier 的 local 路径承载；新增回归测试断言 reveal 场景
+   `verifier.calls > 0`。
 
 ---
 
@@ -155,7 +162,7 @@
 cd E:\harness-framework
 
 # 单元测试
-python -m unittest discover -s tests -v          # 147 passed
+python -m unittest discover -s tests -v          # 148 passed
 
 # benchmark
 python benchmarks/run_benchmarks.py               # 34/34 outcome + executor_calls

@@ -12,7 +12,9 @@
       "Bash(git --version)",
       "Bash(git ls-remote *)",
       "Bash(git config *)",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(echo \"baseline exit=$?\")",
+      "Bash(echo \"exit=$?\")"
     ]
   }
 }

@@ -78,38 +78,8 @@ class DefaultRecoveryPlanner:
         return [ActionSpec(action_type="back")]
 
 
-# ─────────────── Reveal 成功验证 ───────────────
-
-def _verify_reveal_success(
-    before_state: UiState,
-    after_state: UiState,
-    target_role: Optional[str] = None,
-    expected_ocr_tokens: Optional[set] = None,
-) -> tuple:
-    """验证单步 reveal 是否成功。
-
-    成功条件（任一满足即可）：
-      1. control_bar_visible: false → true
-      2. selected_role 状态转移：before ≠ target → after == target
-      3. 多 OCR token 全集出现：expected_ocr_tokens ⊆ (after.ocr_tokens - before.ocr_tokens)
-
-    Returns: (success: bool, reason: str)
-    """
-    # 1. control_bar_visible: false → true
-    if not before_state.control_bar_visible and after_state.control_bar_visible:
-        return True, "control_bar became visible"
-
-    # 2. selected_role 状态转移
-    if target_role and before_state.selected_role != target_role and after_state.selected_role == target_role:
-        return True, f"selected_role transition to '{target_role}'"
-
-    # 3. 多 OCR token 全集出现
-    if expected_ocr_tokens:
-        new_tokens = after_state.ocr_tokens - before_state.ocr_tokens
-        if expected_ocr_tokens.issubset(new_tokens):
-            return True, f"all expected OCR tokens appeared: {sorted(expected_ocr_tokens)}"
-
-    return False, "no reveal success signal"
+# Reveal 验证已并入统一 Verifier 的 local 路径（control_bar / selected_role / OCR），
+# 不再使用独立的 _verify_reveal_success 绕过注入 verifier。
 
 
 # ─────────────── 主循环 ───────────────
@@ -128,8 +98,6 @@ def run_action_loop(
     recovery_budget: int = 2,
     control_revealer: Optional[ControlRevealer] = None,
     recovery_planner: Optional[RecoveryPlanner] = None,
-    target_role: Optional[str] = None,
-    expected_ocr_tokens: Optional[set] = None,
     deadline_ms: Optional[int] = None,
     clock: Optional[Clock] = None,
     trace_observer: Optional[Any] = None,
@@ -210,18 +178,17 @@ def run_action_loop(
             final_state=current_state,
         )
 
-    def _execute_guarded_action(action, step_idx, strategy_id=None, use_reveal_verify=False):
+    def _execute_guarded_action(action, step_idx, strategy_id=None):
         """统一执行动作：budget check → Guard → Executor → Verifier → trace → state update。
 
         Args:
             action: 要执行的动作
             step_idx: 步骤索引
             strategy_id: 策略 ID（用于 trace）
-            use_reveal_verify: 是否使用 reveal 成功验证（用于 RevealPlan 动作）
 
         Returns:
             dict: {
-                "status": "success" | "failed" | "blocked" | "budget_exhausted" | "not_yet" | "unknown",
+                "status": "success" | "failed" | "blocked" | "budget_exhausted" | "timeout" | "not_yet" | "unknown",
                 "guard_result": GuardDecision | None,
                 "action_result": ActionResult | None,
                 "verification": VerificationResult | None,
@@ -305,24 +272,10 @@ def run_action_loop(
         # 执行成功，更新状态
         after_state = action_result.after_state
 
-        # Verifier verification
-        if use_reveal_verify:
-            # 使用 reveal 成功验证
-            success, reason = _verify_reveal_success(
-                before_state, after_state,
-                target_role=target_role,
-                expected_ocr_tokens=expected_ocr_tokens,
-            )
-            verification = VerificationResult(
-                verification=VerificationStatus.success if success else VerificationStatus.not_yet,
-                source="local",
-                reason=reason,
-            )
-        else:
-            # 使用标准 verifier
-            _start_phase("verify")
-            verification = verifier.verify(before_state, after_state, action)
-            _end_phase("verify")
+        # Verifier verification（统一路径：reveal 动作同样走注入的 verifier）
+        _start_phase("verify")
+        verification = verifier.verify(before_state, after_state, action)
+        _end_phase("verify")
 
         last_verification = verification
         te["verification"] = verification.verification.value
@@ -395,7 +348,6 @@ def run_action_loop(
                     recovery_action,
                     len(steps),
                     strategy_id=None,
-                    use_reveal_verify=False,
                 )
 
                 # 如果预算耗尽，立即返回
@@ -478,7 +430,6 @@ def run_action_loop(
                         plan_action,
                         len(steps),
                         strategy_id=strategy_id,
-                        use_reveal_verify=True,
                     )
 
                     # 预算耗尽
@@ -522,7 +473,6 @@ def run_action_loop(
             action,
             step_idx,
             strategy_id=None,
-            use_reveal_verify=False,
         )
 
         # 预算耗尽
